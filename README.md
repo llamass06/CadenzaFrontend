@@ -36,7 +36,7 @@ Rutas Protegidas: Sistema de Guards que redirige automáticamente al Login si se
 UI Responsiva: Diseño completamente adaptado a dispositivos móviles y escritorio.
 
 
-🛠️ Instalación y Uso en Desarrollo
+##🛠️ Instalación y Uso en Desarrollo
 
 Para ejecutar este proyecto en tu entorno local, asegúrate de tener instalado Node.js y sigue estos pasos:
 
