@@ -26,37 +26,33 @@ cadenza-frontend/
 └── package.json          # Dependencias y scripts
 ```
 
-🔐 Características Actuales
+## 🔐 Características Actuales
+Autenticación Segura: Conexión directa con el backend FastAPI. Los usuarios inician sesión enviando sus credenciales en formato x-www-form-urlencoded.
 
-    Autenticación Segura: Conexión directa con el backend FastAPI. Los usuarios inician sesión enviando sus credenciales en formato x-www-form-urlencoded.
+Gestión de Sesión: Almacenamiento seguro del token JWT en el localStorage.
 
-    Gestión de Sesión: Almacenamiento seguro del token JWT en el localStorage.
+Rutas Protegidas: Sistema de Guards que redirige automáticamente al Login si se intenta acceder al /dashboard sin un token válido.
 
-    Rutas Protegidas: Sistema de Guards que redirige automáticamente al Login si se intenta acceder al /dashboard sin un token válido.
+UI Responsiva: Diseño completamente adaptado a dispositivos móviles y escritorio.
 
-    UI Responsiva: Diseño completamente adaptado a dispositivos móviles y escritorio.
 
 🛠️ Instalación y Uso en Desarrollo
 
 Para ejecutar este proyecto en tu entorno local, asegúrate de tener instalado Node.js y sigue estos pasos:
 
-    Clonar el repositorio:
-    Bash
+Clonar el repositorio:
 
     git clone [https://github.com/llamass06/CadenzaFrontend.git](https://github.com/llamass06/CadenzaFrontend.git)
     cd CadenzaFrontend/cadenza-frontend
 
-    Instalar las dependencias:
-    Bash
+Instalar las dependencias:
 
     npm install
 
-    Iniciar el servidor de desarrollo:
-    Bash
+Iniciar el servidor de desarrollo:
 
     npm run dev
 
-    Abrir en el navegador:
-    Navega a http://localhost:5173 para ver la aplicación.
+Abrir en el navegador:
 
-    Nota: Para que el inicio de sesión funcione correctamente, el Backend de Cadenza debe estar ejecutándose en http://127.0.0.1:8000 con la configuración de CORS adecuada.
+    Navega a http://localhost:5173 para ver la aplicación.
