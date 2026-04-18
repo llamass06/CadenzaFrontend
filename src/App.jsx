@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Estudio from './pages/Estudio';
 
 // Componente "Guardia de Seguridad"
 // Comprueba si hay un token; si no lo hay, te expulsa al Login
@@ -21,15 +22,22 @@ export default function App() {
         <Route path="/login" element={<Login />} />
 
         {/* Ruta protegida: Dashboard */}
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
-          } 
+          }
         />
-
+        <Route
+          path="/estudio"
+          element={
+            <ProtectedRoute>
+              <Estudio />
+            </ProtectedRoute>
+          }
+        />
         {/* Si el usuario escribe una URL que no existe, lo mandamos al Login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

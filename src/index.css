@@ -1,19 +1,40 @@
 @import "tailwindcss";
 
 @theme {
-  /* Nuestra paleta de colores personalizada */
-  --color-cadenza-dark: #070b19;    /* Azul casi negro para el fondo principal */
-  --color-cadenza-card: #121a2f;    /* Azul oscuro para los contenedores/tarjetas */
-  --color-cadenza-blue: #1d4ed8;    /* Azul estándar para botones normales */
-  --color-cadenza-light: #93c5fd;   /* Azul clarito para textos secundarios */
-  --color-cadenza-neon: #00f0ff;    /* Cian brillante para los toques de neón */
-
-  /* Creamos una sombra personalizada para hacer el efecto de brillo neón */
-  --shadow-neon: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3);
+  /* Enlazamos las clases de Tailwind con nuestras variables dinámicas */
+  --color-cadenza-bg: var(--bg-main);
+  --color-cadenza-card: var(--bg-card);
+  --color-cadenza-text: var(--text-main);
+  --color-cadenza-light: var(--text-muted);
+  --color-cadenza-blue: var(--accent-blue);
+  --color-cadenza-neon: var(--accent-neon);
+  --color-cadenza-border: var(--border-subtle);
 }
 
-/* Opcional: Para que toda la app tenga el fondo oscuro por defecto */
+/* ☀️ MODO CLARO (Por defecto) */
+:root {
+  --bg-main: #f8fafc;        /* Gris casi blanco */
+  --bg-card: #ffffff;        /* Blanco puro para las tarjetas */
+  --text-main: #0f172a;      /* Azul marino muy oscuro para textos */
+  --text-muted: #475569;     /* Gris plomo para subtítulos */
+  --accent-blue: #2563eb;    /* Azul clásico */
+  --accent-neon: #0284c7;    /* Azul cerúleo oscuro (para que contraste en blanco) */
+  --border-subtle: #cbd5e1;  /* Borde gris suave */
+}
+
+/* 🌙 MODO OSCURO */
+.dark {
+  --bg-main: #050a15;
+  --bg-card: #0a1224;
+  --text-main: #ffffff;
+  --text-muted: #94a3b8;
+  --accent-blue: #3b82f6;
+  --accent-neon: #00f2ff;
+  --border-subtle: rgba(59, 130, 246, 0.3);
+}
+
 body {
-  background-color: var(--color-cadenza-dark);
-  color: white;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
