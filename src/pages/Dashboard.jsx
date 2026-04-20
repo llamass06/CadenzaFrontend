@@ -1,175 +1,288 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as jsmediatags from 'jsmediatags';
+
+// Importaciones de componentes y utilidades
+import Sidebar from '../components/Sidebar';
+import { useThemeSettings } from '../utils/useThemeSettings';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  
+  // Hook de configuración visual persistente
+  const { isDark, setIsDark, fontSize, setFontSize, isSidebarOpen, setIsSidebarOpen } = useThemeSettings();
 
-  // ESTADOS
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isDark, setIsDark] = useState(true);
-  const [fontSize, setFontSize] = useState('text-sm');
+  // Estados de subida y metadatos
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [errorArchivo, setErrorArchivo] = useState("");
+  const [nombreParaIA, setNombreParaIA] = useState("");
+  const [autorParaIA, setAutorParaIA] = useState("");
+  
+  // Estado de la biblioteca
+  const [obrasRecientes, setObrasRecientes] = useState([]);
+  const [cargandoObras, setCargandoObras] = useState(true);
 
-  // Aplicar modo oscuro/claro
+  // Cargar historial al montar el componente
   useEffect(() => {
-    if (isDark) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-  }, [isDark]);
+    const fetchMisObras = async () => {
+      const token = localStorage.getItem('cadenza_token');
+      if (!token) return;
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/v1/mis-obras", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setObrasRecientes(data);
+        }
+      } catch (error) {
+        console.error("Error al cargar las obras:", error);
+      } finally {
+        setCargandoObras(false);
+      }
+    };
+    fetchMisObras();
+  }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('cadenza_token');
-    navigate('/login');
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setErrorArchivo("");
+      jsmediatags.read(file, {
+        onSuccess: function(tag) {
+          setNombreParaIA(tag.tags.title || file.name.replace(/\.[^/.]+$/, ""));
+          setAutorParaIA(tag.tags.artist || "");
+        },
+        onError: function() {
+          setNombreParaIA(file.name.replace(/\.[^/.]+$/, ""));
+        }
+      });
+    }
   };
 
-  const goToEstudio = () => {
-    navigate('/estudio');
+  const handleUpload = async () => {
+    // 1. Validación previa en el front
+    if (!selectedFile || !nombreParaIA.trim()) {
+      setErrorArchivo("El título de la obra es obligatorio.");
+      return;
+    }
+
+    setIsUploading(true);
+    setErrorArchivo("");
+
+    // 2. Construcción del FormData (Crucial para evitar el 422)
+    const formData = new FormData();
+    formData.append("file", selectedFile);       // Debe coincidir con 'file' en FastAPI
+    formData.append("title", nombreParaIA);      // Debe coincidir con 'title' en FastAPI
+    formData.append("artist", autorParaIA || ""); // Enviar string vacío si no hay autor
+
+    const token = localStorage.getItem('cadenza_token');
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/v1/separar", {
+        method: "POST",
+        headers: { 
+          // MUY IMPORTANTE: NO pongas 'Content-Type': 'multipart/form-data' aquí.
+          // El navegador lo pone automáticamente con el "boundary" correcto.
+          "Authorization": `Bearer ${token}` 
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        // Esto te ayudará a ver el error exacto en la consola si vuelve a fallar
+        const errorDetail = await response.json();
+        console.error("Detalle del error 422:", errorDetail);
+        throw new Error(errorDetail.detail || "Error en el servidor");
+      }
+
+      const data = await response.json();
+      
+      // Navegamos al estudio con los datos recibidos
+      navigate('/estudio', { 
+        state: { 
+          nombreObra: nombreParaIA,
+          autorObra: autorParaIA,
+          backingUrl: data.backing_url,
+          bpmDetectado: data.bpm
+        } 
+      });
+
+    } catch (error) {
+      setErrorArchivo(`❌ Error: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const eliminarObra = async (e, id) => {
+    e.stopPropagation(); // Evita navegar al estudio
+    const confirmar = window.confirm("¿Estás seguro de que deseas eliminar esta obra de tu biblioteca?");
+    if (confirmar) {
+      try {
+        const token = localStorage.getItem('cadenza_token');
+        const response = await fetch(`http://127.0.0.1:8000/api/v1/obras/${id}`, {
+          method: 'DELETE',
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.ok) {
+          setObrasRecientes(obrasRecientes.filter(o => o.id !== id));
+        }
+      } catch (error) {
+        console.error("Error al eliminar:", error);
+      }
+    }
+  };
+
+  const abrirEstudioDesdeHistorial = (obra) => {
+    navigate('/estudio', { 
+      state: { 
+        nombreObra: obra.title,
+        backingUrl: obra.backing_url,
+        bpmDetectado: obra.bpm
+      } 
+    });
   };
 
   return (
     <div className={`min-h-screen bg-cadenza-bg text-cadenza-text flex ${fontSize} transition-all duration-300 overflow-x-hidden`}>
       
-      {/* ☰ SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-cadenza-card border-r border-cadenza-border transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out shadow-xl`}>
-        <div className="p-6 space-y-8">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-black text-cadenza-neon tracking-tighter">CADENZA</h2>
-            <button onClick={() => setIsSidebarOpen(false)} className="text-xl hover:rotate-90 transition-transform">✕</button>
-          </div>
-          
-          <nav className="space-y-6">
-            <div className="space-y-2">
-              <h3 className="text-[10px] font-bold text-cadenza-light uppercase tracking-widest">Usuario</h3>
-              <button className="flex items-center space-x-3 w-full p-2 hover:bg-cadenza-blue/10 rounded-lg transition-colors">
-                <span className="text-lg">👤</span> <span className="font-semibold text-sm">Mi Perfil</span>
-              </button>
-            </div>
-            
-            <div className="pt-4 border-t border-cadenza-border space-y-5">
-              <h3 className="text-[10px] font-bold text-cadenza-light uppercase tracking-widest">Personalización</h3>
-              
-              {/* Modo Claro/Oscuro */}
-              <div className="flex items-center justify-between bg-cadenza-bg p-2.5 rounded-lg border border-cadenza-border">
-                <span className="text-xs font-bold">Modo Oscuro</span>
-                <button 
-                  onClick={() => setIsDark(!isDark)}
-                  className={`w-10 h-5 rounded-full p-1 transition-colors ${isDark ? 'bg-cadenza-neon' : 'bg-slate-400'}`}
-                >
-                  <div className={`w-3 h-3 bg-white rounded-full transform transition-transform ${isDark ? 'translate-x-5' : 'translate-x-0'}`}></div>
-                </button>
-              </div>
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        setIsOpen={setIsSidebarOpen} 
+        isDark={isDark} 
+        setIsDark={setIsDark} 
+        fontSize={fontSize} 
+        setFontSize={setFontSize} 
+        showUserMenu={true} 
+      />
 
-              {/* Tamaño de letra */}
-              <div className="space-y-2">
-                <span className="text-xs font-bold">Tamaño de Interfaz</span>
-                <div className="grid grid-cols-3 gap-2">
-                  {['text-xs', 'text-sm', 'text-base'].map(size => (
-                    <button 
-                      key={size}
-                      onClick={() => setFontSize(size)}
-                      className={`py-1.5 text-[10px] rounded-md border-2 transition-all ${fontSize === size ? 'border-cadenza-neon bg-cadenza-neon/10 text-cadenza-neon font-black' : 'border-cadenza-border text-cadenza-light'}`}
-                    >
-                      {size.split('-')[1].toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </nav>
-        </div>
-      </aside>
-
-      {/* 🎛️ CONTENIDO PRINCIPAL (w-full para ocupar todo el espacio) */}
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="p-6 w-full">
+      {/* Main expandido a la izquierda */}
+      <main className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <div className="p-12 w-full text-left">
           
-          {/* Cabecera */}
-          <header className="flex flex-col md:flex-row md:items-end justify-between mb-8 border-b-2 border-cadenza-border pb-6">
-            <div className="flex items-center space-x-4">
+          {/* Cabecera horizontal a la izquierda */}
+          <header className="flex items-center mb-12 border-b border-cadenza-border pb-6 relative">
+            {!isSidebarOpen && (
               <button 
-                onClick={() => setIsSidebarOpen(true)}
-                className={`text-2xl p-1.5 hover:bg-cadenza-card rounded-md transition-colors ${isSidebarOpen ? 'opacity-0 scale-0 hidden' : 'opacity-100 scale-100'}`}
+                onClick={() => setIsSidebarOpen(true)} 
+                className="flex items-center justify-center w-10 h-10 text-2xl hover:bg-cadenza-card rounded-md transition-colors mr-4"
               >
                 ☰
               </button>
-              <div className="text-left">
-                <h1 className="text-3xl font-black tracking-tight">Panel <span className="text-cadenza-neon">Principal</span></h1>
-                <p className="text-cadenza-light font-semibold mt-1 uppercase tracking-widest text-[11px]">Bienvenido a tu HUB</p>
-              </div>
+            )}
+            <div className="text-left">
+              <h1 className="text-3xl font-black tracking-tighter italic">MI <span className="text-cadenza-neon">DASHBOARD</span></h1>
+              <p className="text-cadenza-light font-bold mt-1 uppercase tracking-[0.3em] text-[10px]">Tu centro de control musical</p>
             </div>
-            <button 
-              onClick={handleLogout}
-              className="mt-4 md:mt-0 text-[11px] font-black uppercase tracking-widest text-red-600 dark:text-red-500 hover:text-red-500 dark:hover:text-red-400 transition-colors border-b-2 border-transparent hover:border-red-500 px-2 py-1"
-            >
-              Cerrar Sesión
+            <button onClick={() => navigate(-1)} className="ml-auto text-[10px] font-black uppercase tracking-widest text-cadenza-light hover:text-cadenza-neon transition-colors">
+                ← Volver
             </button>
           </header>
 
-          {/* Tarjetas de Acción del Dashboard (Grid de 12 columnas para distribuir el ancho total) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             
-            {/* 1. Tarjeta de Crear Nuevo (4 columnas) */}
-            <div className="lg:col-span-4 bg-cadenza-card border border-cadenza-border rounded-3xl p-8 flex flex-col items-center text-center shadow-md hover:border-cadenza-neon transition-colors group">
-              <div className="w-20 h-20 bg-cadenza-neon/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <span className="text-4xl">🎹</span>
-              </div>
-              <h2 className="text-2xl font-black mb-3 text-cadenza-text">Nuevo Proyecto</h2>
-              <p className="text-cadenza-light text-sm mb-8 flex-1">Sube una nueva canción, aísla el piano y practica sobre ella en el Estudio Virtual.</p>
+            {/* Panel de Subida (Ocupa 8 columnas para ser más ancho) */}
+            <div className="lg:col-span-8 bg-cadenza-card border border-cadenza-border rounded-3xl p-10 shadow-lg relative overflow-hidden flex flex-col justify-center min-h-[450px]">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-cadenza-neon opacity-5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
               
-              <button 
-                onClick={goToEstudio}
-                className="w-full py-4 bg-cadenza-neon text-white dark:text-cadenza-bg font-black rounded-xl tracking-widest uppercase hover:opacity-90 transition-opacity shadow-md"
-              >
-                Ir al Estudio
-              </button>
+              <div className="relative z-10 space-y-8">
+                <div className="text-left">
+                  <h2 className="text-2xl font-black tracking-tight uppercase italic">Nueva Obra</h2>
+                  <p className="text-cadenza-light text-sm font-medium">Sube audio para aislar el acompañamiento</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <label className="flex flex-col items-center justify-center h-48 border-2 border-cadenza-border border-dashed rounded-2xl cursor-pointer bg-slate-50 dark:bg-black/20 hover:border-cadenza-neon transition-all">
+                    <span className="text-4xl mb-3">📁</span>
+                    <p className="text-[10px] text-cadenza-light font-black uppercase tracking-widest text-center px-4 leading-relaxed">
+                      {selectedFile ? selectedFile.name : "Seleccionar archivo de audio"}
+                    </p>
+                    <input type="file" className="hidden" accept="audio/*" onChange={handleFileSelect} />
+                  </label>
+
+                  <div className="space-y-4 flex flex-col justify-center">
+                    <div className="space-y-2 text-left">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-cadenza-light ml-1">Título</label>
+                      <input type="text" value={nombreParaIA} onChange={(e) => setNombreParaIA(e.target.value)} className="w-full bg-cadenza-bg border-2 border-cadenza-border rounded-xl px-4 py-3 text-sm focus:border-cadenza-neon outline-none transition-colors" />
+                    </div>
+                    <div className="space-y-2 text-left">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-cadenza-light ml-1">Compositor</label>
+                      <input type="text" value={autorParaIA} onChange={(e) => setAutorParaIA(e.target.value)} className="w-full bg-cadenza-bg border-2 border-cadenza-border rounded-xl px-4 py-3 text-sm focus:border-cadenza-neon outline-none transition-colors" />
+                    </div>
+                  </div>
+                </div>
+
+                {errorArchivo && <p className="text-xs font-bold text-red-500 bg-red-500/10 p-3 rounded-lg border border-red-500/50">{errorArchivo}</p>}
+
+                <button 
+                  onClick={handleUpload}
+                  disabled={!selectedFile || isUploading}
+                  className="w-full py-5 bg-cadenza-neon text-white dark:text-cadenza-bg rounded-xl font-black tracking-widest uppercase shadow-md hover:scale-[1.01] transition-all disabled:opacity-20"
+                >
+                  {isUploading ? "PROCESANDO..." : "SEPARAR PISTAS"}
+                </button>
+              </div>
             </div>
 
-            {/* 2. Tarjeta de Historial (5 columnas) */}
-            <div className="lg:col-span-5 bg-cadenza-card border border-cadenza-border rounded-3xl p-8 flex flex-col shadow-md">
-              <h2 className="text-lg font-black mb-6 uppercase tracking-tight flex items-center space-x-2 text-left border-b border-cadenza-border pb-3">
-                <span>📚</span> <span>Tus Obras Recientes</span>
-              </h2>
+            {/* Columna Derecha: Biblioteca y Actividad */}
+            <div className="lg:col-span-4 space-y-8">
               
-              <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-cadenza-border rounded-2xl bg-slate-50 dark:bg-black/20 p-6">
-                <span className="text-cadenza-light mb-3 text-4xl opacity-40 hover:opacity-80 transition-opacity">📂</span>
-                <p className="text-cadenza-light font-medium text-center text-sm">
-                  Todavía no has procesado ninguna pista. <br/> <span className="text-cadenza-neon font-bold mt-1 inline-block">¡Empieza un nuevo proyecto!</span>
-                </p>
-              </div>
-            </div>
-
-            {/* 3. NUEVO: Tarjeta de Progreso/Estadísticas (3 columnas) */}
-            <div className="lg:col-span-3 bg-cadenza-card border border-cadenza-border rounded-3xl p-8 flex flex-col shadow-md">
-              <h2 className="text-lg font-black mb-6 uppercase tracking-tight flex items-center space-x-2 text-left border-b border-cadenza-border pb-3">
-                <span>📈</span> <span>Tu Progreso</span>
-              </h2>
-              
-              <div className="flex-1 flex flex-col justify-end">
-                {/* Minigráfico de barras estético */}
-                <div className="flex items-end justify-between h-32 border-b border-cadenza-border pb-2 px-1 mb-2">
-                  {[35, 60, 45, 85, 50, 100, 70].map((height, i) => (
+              <div className="bg-cadenza-card border border-cadenza-border rounded-3xl p-8 shadow-md">
+                <h2 className="text-xs font-black mb-6 uppercase tracking-[0.2em] border-b border-cadenza-border pb-3 text-cadenza-light text-left">Biblioteca Reciente</h2>
+                <div className="space-y-4 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                  {cargandoObras ? (
+                    <div className="h-20 bg-slate-100 dark:bg-white/5 rounded-xl animate-pulse"></div>
+                  ) : obrasRecientes.map(obra => (
                     <div 
-                      key={i} 
-                      className="w-4 bg-cadenza-blue/30 dark:bg-cadenza-blue/40 rounded-t-sm hover:bg-cadenza-neon transition-colors relative group cursor-pointer"
-                      style={{ height: `${height}%` }}
+                      key={obra.id} 
+                      onClick={() => abrirEstudioDesdeHistorial(obra)} 
+                      className="p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-cadenza-border flex items-center justify-between cursor-pointer hover:border-cadenza-neon transition-all group"
                     >
-                      {/* Tooltip invisible que aparece al hacer hover (opcional visual) */}
-                      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-cadenza-text text-cadenza-bg text-[9px] font-bold py-0.5 px-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                        {height}m
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 rounded-full bg-cadenza-blue/10 flex items-center justify-center text-cadenza-blue">
+                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" /></svg>
+                        </div>
+                        <div className="text-left">
+                          <p className="font-black text-[11px] uppercase truncate w-32 group-hover:text-cadenza-neon transition-colors">{obra.title}</p>
+                          <p className="text-[9px] text-cadenza-light font-bold mt-1 uppercase italic">{obra.bpm} BPM</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button 
+                          onClick={(e) => eliminarObra(e, obra.id)}
+                          className="p-2 text-cadenza-light hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-cadenza-light group-hover:text-cadenza-neon transition-colors" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
                       </div>
                     </div>
                   ))}
                 </div>
-                {/* Días de la semana */}
-                <div className="flex justify-between text-[10px] text-cadenza-light font-black uppercase px-1">
+              </div>
+
+              <div className="bg-cadenza-card border border-cadenza-border rounded-3xl p-8 shadow-md">
+                <h3 className="text-xs font-black uppercase tracking-widest text-cadenza-light text-left mb-8">Actividad Semanal</h3>
+                <div className="flex items-end justify-between h-32 border-b border-cadenza-border pb-2 px-1 mb-4">
+                  {[35, 60, 45, 85, 50, 100, 70].map((height, i) => (
+                    <div key={i} className="w-4 bg-cadenza-blue/20 dark:bg-cadenza-blue/30 rounded-t-sm hover:bg-cadenza-neon transition-colors relative group cursor-pointer" style={{ height: `${height}%` }}>
+                      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-cadenza-text text-cadenza-bg text-[9px] font-bold py-0.5 px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{height}m</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between text-[10px] text-cadenza-light font-black px-1 uppercase italic">
                   <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
                 </div>
-
-                <div className="mt-6 bg-cadenza-neon/10 rounded-xl p-3 text-center border border-cadenza-neon/20">
-                  <p className="text-xs font-bold text-cadenza-neon">¡Buena racha!</p>
-                  <p className="text-[10px] font-medium text-cadenza-light mt-0.5">Has practicado 4 días seguidos.</p>
-                </div>
               </div>
-            </div>
 
+            </div>
           </div>
         </div>
       </main>
