@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-
-// Importaciones de tus utilidades y componentes
-import { useThemeSettings } from '../utils/useThemeSettings';
-import Sidebar from '../components/Sidebar';
+import { useNavigate, Link } from 'react-router-dom';
+import AuthLayout, { PasswordField } from '../components/AuthLayout';
 
 export default function Login() {
   const navigate = useNavigate();
-  
-  const { isDark, setIsDark, fontSize, setFontSize, isSidebarOpen, setIsSidebarOpen } = useThemeSettings();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,125 +40,83 @@ export default function Login() {
     }
   };
 
-  return (
-    <div className={`min-h-screen bg-cadenza-bg text-cadenza-text flex ${fontSize} transition-all duration-300 overflow-x-hidden`}>
-      
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        setIsOpen={setIsSidebarOpen} 
-        isDark={isDark} 
-        setIsDark={setIsDark} 
-        fontSize={fontSize} 
-        setFontSize={setFontSize} 
-        showUserMenu={false} 
-      />
-
-      <main className={`flex-1 flex transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        
-        {/* COLUMNA IZQUIERDA */}
-        <div className="w-full lg:w-2/3 p-8 md:p-12 flex flex-col relative">
-          
-          {/* Solo el botón de hamburguesa se queda en la esquina superior izquierda */}
-          {!isSidebarOpen && (
-            <button 
-              onClick={() => setIsSidebarOpen(true)} 
-              className="absolute top-10 left-10 z-20 w-10 h-10 text-2xl hover:bg-cadenza-card rounded-md transition-colors"
-            >
-              ☰
-            </button>
-          )}
-
-          {/* CONTENEDOR CENTRAL: Centra el título + el recuadro */}
-          <div className="flex-1 flex flex-col items-center justify-center w-full">
-            
-            {/* TÍTULO: Ahora encima del recuadro */}
-            <div className="w-full max-w-2xl mb-8 text-left px-2">
-              <h1 className="text-4xl font-black tracking-tighter">
-                CADENZA<span className="text-cadenza-neon">.</span>
-              </h1>
-              <p className="text-cadenza-light text-[10px] font-bold uppercase tracking-[0.4em] mt-1">
-                Plataforma de Estudio Musical
-              </p>
-            </div>
-
-            {/* RECUADRO DE LOGIN */}
-            <div className="bg-cadenza-card border border-cadenza-border rounded-3xl p-10 md:p-14 shadow-2xl relative overflow-hidden w-full max-w-2xl">
-              
-              <div className="absolute top-0 right-0 w-48 h-48 bg-cadenza-neon opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-              
-              <div className="relative z-10 mb-10 text-left">
-                <h2 className="text-2xl font-black text-cadenza-neon uppercase tracking-tight">Acceso de Músicos</h2>
-                <p className="text-cadenza-light text-sm font-medium mt-1">Tu espacio personal te espera</p>
-              </div>
-
-              {error && (
-                <div className="mb-8 p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-xs font-bold">
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleLogin} className="space-y-6">
-                <div>
-                  <label className="block text-cadenza-light text-[11px] uppercase tracking-widest font-black mb-2 ml-1">
-                    Correo Electrónico
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-black/20 border-2 border-cadenza-border rounded-xl px-5 py-4 text-cadenza-text focus:outline-none focus:border-cadenza-neon transition-colors"
-                    placeholder="pianista@cadenza.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-cadenza-light text-[11px] uppercase tracking-widest font-black mb-2 ml-1">
-                    Contraseña
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-black/20 border-2 border-cadenza-border rounded-xl px-5 py-4 text-cadenza-text focus:outline-none focus:border-cadenza-neon transition-colors"
-                    placeholder="••••••••"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full py-5 rounded-xl font-black tracking-widest transition-all duration-300 shadow-md ${
-                    isLoading 
-                      ? 'bg-slate-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed' 
-                      : 'bg-cadenza-neon text-white dark:text-cadenza-bg hover:opacity-90 hover:scale-[1.01]'
-                  }`}
-                >
-                  {isLoading ? 'CONECTANDO...' : 'ENTRAR AL ESTUDIO'}
-                </button>
-              </form>
-
-              <div className="mt-10 pt-6 border-t border-cadenza-border text-left">
-                <p className="text-cadenza-light text-[10px] font-bold uppercase tracking-widest">
-                  ¿Problemas? <span className="text-cadenza-neon cursor-pointer hover:underline">Soporte Técnico</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* COLUMNA DERECHA: Degradado Azul */}
-        <div className="hidden lg:flex w-1/3 min-h-screen bg-gradient-to-br from-cadenza-blue via-cadenza-bg to-cadenza-bg relative items-center justify-center p-12 border-l border-cadenza-border">
-          <div className="absolute inset-0 bg-grid-white/[0.02] [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))]"></div>
-          <div className="relative z-10 text-center space-y-4">
-            <span className="text-6xl text-white/90 font-black tracking-tight block">Toca.</span>
-            <span className="text-6xl text-white/70 font-black tracking-tight block">Graba.</span>
-            <span className="text-6xl text-cadenza-neon font-black tracking-tight block">Mejora.</span>
-          </div>
-        </div>
-
-      </main>
+  const rightColumn = (
+    <div className="hidden lg:flex w-1/3 min-h-screen bg-gradient-to-br from-cadenza-blue via-cadenza-bg to-cadenza-bg relative items-center justify-center p-12 border-l border-cadenza-border">
+      <div className="absolute inset-0 bg-grid-white/[0.02] [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))]"></div>
+      <div className="relative z-10 text-center space-y-4">
+        <span className="text-6xl text-white/90 font-black tracking-tight block">Toca.</span>
+        <span className="text-6xl text-white/70 font-black tracking-tight block">Graba.</span>
+        <span className="text-6xl text-cadenza-neon font-black tracking-tight block">Mejora.</span>
+      </div>
     </div>
+  );
+
+  return (
+    <AuthLayout rightColumn={rightColumn}>
+      <div className="w-full max-w-md mb-6 text-left px-2">
+        <h1 className="text-2xl font-black tracking-tighter">
+          CADENZA<span className="text-cadenza-neon">.</span>
+        </h1>
+        <p className="text-cadenza-light text-[9px] font-bold uppercase tracking-[0.3em]">
+          Plataforma de Estudio
+        </p>
+      </div>
+
+      <div className="bg-cadenza-card border border-cadenza-border rounded-2xl p-8 shadow-xl relative overflow-hidden w-full max-w-md">
+        <div className="relative z-10 mb-8 text-left">
+          <h2 className="text-lg font-black text-cadenza-neon uppercase">Acceso</h2>
+          <p className="text-cadenza-light text-xs">Tu estudio personal te espera</p>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-500 text-[10px] font-bold">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label className="block text-cadenza-light text-[10px] uppercase font-black mb-1.5 ml-1 text-left">
+              Correo Electrónico
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-black/20 border-2 border-cadenza-border rounded-xl px-5 py-4 text-gray-900 dark:text-cadenza-text placeholder:text-slate-400 dark:placeholder:text-cadenza-light/50 focus:outline-none focus:border-cadenza-neon transition-colors"
+              placeholder="pianista@cadenza.com"
+            />
+          </div>
+
+          <PasswordField
+            label="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`w-full py-5 rounded-xl font-black tracking-widest transition-all duration-300 shadow-md ${isLoading
+                ? 'bg-slate-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed'
+                : 'bg-cadenza-neon text-white dark:text-cadenza-bg hover:opacity-90 hover:scale-[1.01]'
+              }`}
+          >
+            {isLoading ? 'CONECTANDO...' : 'ENTRAR AL ESTUDIO'}
+          </button>
+        </form>
+
+        <div className="mt-8 pt-5 border-t border-cadenza-border text-center">
+          <p className="text-slate-500 dark:text-cadenza-light text-[10px] font-bold uppercase tracking-widest">
+            ¿No tienes cuenta?{' '}
+            <Link to="/register" className="text-cadenza-neon hover:underline cursor-pointer">
+              Crea una ahora
+            </Link>
+          </p>
+        </div>
+      </div>
+    </AuthLayout>
   );
 }

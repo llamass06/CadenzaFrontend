@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Estudio from './pages/Estudio';
 import ProtectedRoute from './components/ProtectedRoute'; // Importamos el portero
+import Register from './pages/Register';
 
 function App() {
   return (
@@ -11,8 +12,9 @@ function App() {
       <Routes>
         {/* Rutas Públicas */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-        {/* Rutas Protegidas (Aquí está la magia) */}
+        {/* Rutas Protegidas*/}
         <Route 
           path="/dashboard" 
           element={
