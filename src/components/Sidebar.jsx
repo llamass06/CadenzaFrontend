@@ -67,7 +67,7 @@ export default function Sidebar({
                             onClick={handleLogout}
                             className="flex items-center justify-center space-x-2 w-full p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors font-bold text-sm"
                         >
-                            <span>🚪</span> <span>Cerrar Sesión</span>
+                            <span>Cerrar Sesión</span>
                         </button>
                     </div>
                 )}

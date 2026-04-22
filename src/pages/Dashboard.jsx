@@ -150,6 +150,22 @@ export default function Dashboard() {
     });
   };
 
+  // --- DATOS DINÁMICOS DEL ARCHIVO ---
+  const formatoAudio = selectedFile 
+    ? selectedFile.name.split('.').pop().toUpperCase() 
+    : 'MP3 / WAV';
+
+  let calidadAudio = 'Lossless / HQ';
+  if (selectedFile) {
+    const pesoMB = (selectedFile.size / (1024 * 1024)).toFixed(1);
+    const formatosLossless = ['WAV', 'FLAC', 'AIFF'];
+    // Si es WAV/FLAC decimos que es Lossless, si no, Comprimido
+    const tipo = formatosLossless.includes(formatoAudio) ? 'Lossless' : 'Audio';
+    calidadAudio = `${tipo} (${pesoMB} MB)`;
+  }
+  
+  const colorTextoInfo = selectedFile ? 'text-cadenza-neon' : 'text-cadenza-text';
+
   return (
     <AppLayout
       renderHeader={({ isSidebarOpen, setIsSidebarOpen }) => (
@@ -221,19 +237,27 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* BLOQUE DE REQUISITOS (Rellena el espacio superior del Info Box) */}
+                {/* BLOQUE DE REQUISITOS (Ahora Dinámico) */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 border border-cadenza-border rounded-xl bg-slate-50 dark:bg-white/5 flex flex-col items-start">
-                    <span className="text-[8px] font-black uppercase text-cadenza-light opacity-60 mb-1">Calidad</span>
-                    <span className="text-[10px] font-bold text-cadenza-text uppercase tracking-tight">Lossless / HQ</span>
+                  <div className={`p-3 border rounded-xl flex flex-col items-start transition-all duration-300 ${selectedFile ? 'bg-cadenza-neon/5 border-cadenza-neon/30' : 'bg-slate-50 dark:bg-white/5 border-cadenza-border'}`}>
+                    <span className="text-[8px] font-black uppercase text-cadenza-light opacity-60 mb-1">
+                      {selectedFile ? 'Calidad / Peso' : 'Calidad Recomendada'}
+                    </span>
+                    <span className={`text-[10px] font-bold uppercase tracking-tight ${colorTextoInfo}`}>
+                      {calidadAudio}
+                    </span>
                   </div>
-                  <div className="p-3 border border-cadenza-border rounded-xl bg-slate-50 dark:bg-white/5 flex flex-col items-start">
-                    <span className="text-[8px] font-black uppercase text-cadenza-light opacity-60 mb-1">Formato</span>
-                    <span className="text-[10px] font-bold text-cadenza-text uppercase tracking-tight">MP3 / WAV</span>
+                  <div className={`p-3 border rounded-xl flex flex-col items-start transition-all duration-300 ${selectedFile ? 'bg-cadenza-neon/5 border-cadenza-neon/30' : 'bg-slate-50 dark:bg-white/5 border-cadenza-border'}`}>
+                    <span className="text-[8px] font-black uppercase text-cadenza-light opacity-60 mb-1">
+                      {selectedFile ? 'Formato Detectado' : 'Formatos Soportados'}
+                    </span>
+                    <span className={`text-[10px] font-bold uppercase tracking-tight ${colorTextoInfo}`}>
+                      {formatoAudio}
+                    </span>
                   </div>
                 </div>
 
-                {/* RECUADRO INFORMATIVO (Más grande y estilizado) */}
+                {/* RECUADRO INFORMATIVO */}
                 <div className="p-6 bg-gradient-to-br from-cadenza-blue/10 to-transparent border border-cadenza-blue/20 rounded-2xl flex flex-col items-start text-left relative overflow-hidden">
                   <div className="absolute top-2 right-4 opacity-10">
                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12 text-cadenza-blue"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" /></svg>
@@ -274,7 +298,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Columna Derecha: Biblioteca (Sin cambios) */}
+        {/* Columna Derecha: Biblioteca */}
         <div className="lg:col-span-4 space-y-8">
           <div className="bg-cadenza-card border border-cadenza-border rounded-3xl p-8 shadow-md">
             <h2 className="text-xs font-black mb-6 uppercase tracking-[0.2em] border-b border-cadenza-border pb-3 text-slate-500 dark:text-cadenza-light text-left">Biblioteca Reciente</h2>

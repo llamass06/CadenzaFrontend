@@ -1,37 +1,43 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AppLayout from '../components/AppLayout';
+import { useMetronome } from '../utils/useMetronome';
 
 export default function Estudio() {
     const navigate = useNavigate();
     const location = useLocation();
 
     const nombreDeLaObra = location.state?.nombreObra || 'Obra desconocida';
-    const autorDeLaObra  = location.state?.autorObra  || '';
-    const backingUrl     = location.state?.backingUrl  || null;
-    const bpmDetectado   = location.state?.bpmDetectado || 120;
+    const autorDeLaObra = location.state?.autorObra || '';
+    const backingUrl = location.state?.backingUrl || null;
+    const bpmDetectado = location.state?.bpmDetectado || 120;
 
-    const [bpm, setBpm]           = useState(Math.round(bpmDetectado));
-    const [obraInfo, setObraInfo]  = useState('Cargando...');
+    // 1. Añadimos startMetronome y stopMetronome extrayéndolos del hook
+    const { bpm, setBpm, isPlaying: isMetronomePlaying, toggleMetronome, startMetronome, stopMetronome } = useMetronome(Math.round(bpmDetectado));
+    
+    const [obraInfo, setObraInfo] = useState('Cargando...');
     const [loadingIA, setLoadingIA] = useState(true);
     const [isRecording, setIsRecording] = useState(false);
     const [recordedUrl, setRecordedUrl] = useState(null);
+    
+    // 2. Nuevo estado para saber si la mezcla principal está sonando
+    const [isMasterPlaying, setIsMasterPlaying] = useState(false);
 
-    const backingRef      = useRef(null);
-    const recordedRef     = useRef(null);
+    const backingRef = useRef(null);
+    const recordedRef = useRef(null);
     const mediaRecorderRef = useRef(null);
-    const audioChunksRef  = useRef([]);
+    const audioChunksRef = useRef([]);
 
     // ==============================================================
     // 🎛️ MOTOR WEB AUDIO API
     // ==============================================================
-    const audioCtxRef       = useRef(null);
-    const analyserRef       = useRef(null);
-    const dataArrayRef      = useRef(null);
-    const requestRef        = useRef(null);
-    const barsRef           = useRef([]);
-    const NUM_BARS          = 7;
-    const sourcesConnected  = useRef(new Set());
+    const audioCtxRef = useRef(null);
+    const analyserRef = useRef(null);
+    const dataArrayRef = useRef(null);
+    const requestRef = useRef(null);
+    const barsRef = useRef([]);
+    const NUM_BARS = 7;
+    const sourcesConnected = useRef(new Set());
 
     const initWebAudio = async () => {
         if (!audioCtxRef.current) {
@@ -116,17 +122,28 @@ export default function Estudio() {
         }
     };
 
+    // 3. ACTUALIZACIÓN: handleMasterPlay ahora es un verdadero Play/Pause sincronizado
     const handleMasterPlay = async () => {
         await initWebAudio();
-        if (backingRef.current) {
-            connectAudioElement(backingRef.current);
-            backingRef.current.currentTime = 0;
-            backingRef.current.play();
-        }
-        if (recordedRef.current && recordedUrl) {
-            connectAudioElement(recordedRef.current);
-            recordedRef.current.currentTime = 0;
-            recordedRef.current.play();
+        
+        if (isMasterPlaying) {
+            // PAUSAR TODO
+            if (backingRef.current) backingRef.current.pause();
+            if (recordedRef.current && recordedUrl) recordedRef.current.pause();
+            stopMetronome();
+            setIsMasterPlaying(false);
+        } else {
+            // REPRODUCIR TODO (Haciendo resume)
+            if (backingRef.current) {
+                connectAudioElement(backingRef.current);
+                backingRef.current.play();
+            }
+            if (recordedRef.current && recordedUrl) {
+                connectAudioElement(recordedRef.current);
+                recordedRef.current.play();
+            }
+            startMetronome();
+            setIsMasterPlaying(true);
         }
     };
 
@@ -208,9 +225,17 @@ export default function Estudio() {
                             disabled={!backingUrl}
                             className="w-12 h-12 bg-cadenza-neon rounded-full text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all disabled:opacity-20 relative z-10"
                         >
-                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 ml-0.5">
-                                <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
-                            </svg>
+                            {/* 4. Cambiamos el icono dinámicamente entre Play y Pause */}
+                            {isMasterPlaying ? (
+                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                    <rect x="6" y="5" width="4" height="14" rx="1" />
+                                    <rect x="14" y="5" width="4" height="14" rx="1" />
+                                </svg>
+                            ) : (
+                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 ml-0.5">
+                                    <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                                </svg>
+                            )}
                         </button>
                     </section>
 
@@ -289,11 +314,10 @@ export default function Estudio() {
                         </h3>
                         <button
                             onClick={isRecording ? stopRecording : startRecording}
-                            className={`w-full py-3.5 rounded-xl font-black text-xs tracking-widest uppercase transition-all shadow-md flex items-center justify-center space-x-2.5 ${
-                                isRecording
+                            className={`w-full py-3.5 rounded-xl font-black text-xs tracking-widest uppercase transition-all shadow-md flex items-center justify-center space-x-2.5 ${isRecording
                                     ? 'bg-red-500 animate-pulse text-white'
                                     : 'bg-cadenza-blue text-white'
-                            }`}
+                                }`}
                         >
                             {isRecording ? (
                                 <>
@@ -311,37 +335,37 @@ export default function Estudio() {
 
                     {/* METRÓNOMO */}
                     <section className="bg-cadenza-card p-6 rounded-2xl border border-cadenza-border shadow-sm text-left">
-                        <h3 className="text-[10px] font-black mb-4 uppercase tracking-widest text-slate-500 dark:text-cadenza-light flex justify-between items-center border-b border-cadenza-border pb-2">
-                            <span>Metrónomo</span>
-                            {bpmDetectado !== 120 && (
-                                <span className="text-[7px] font-black bg-cadenza-neon/20 text-cadenza-neon px-2 py-0.5 rounded-full">
-                                    IA BPM
-                                </span>
-                            )}
-                        </h3>
+                        <div className="flex justify-between items-center mb-6 border-b border-cadenza-border pb-3">
+                            <div className="flex items-center space-x-2">
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-cadenza-light">
+                                    Metrónomo
+                                </h3>
+                                {bpmDetectado !== 120 && <span className="text-[7px] font-black bg-cadenza-neon/20 text-cadenza-neon px-2 py-0.5 rounded-full uppercase tracking-tighter">IA BPM</span>}
+                            </div>
+
+                            {/* BOTÓN TOGGLE METRÓNOMO */}
+                            <button
+                                onClick={toggleMetronome}
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isMetronomePlaying ? 'bg-cadenza-neon text-black shadow-[0_0_10px_rgba(0,242,255,0.4)]' : 'bg-slate-200 dark:bg-white/10 text-slate-400 dark:text-cadenza-light hover:text-white hover:bg-cadenza-border'}`}
+                            >
+                                {isMetronomePlaying ? (
+                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3"><rect width="14" height="14" x="5" y="5" rx="2" /></svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 ml-0.5"><path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" /></svg>
+                                )}
+                            </button>
+                        </div>
+
                         <div className="flex flex-col items-center space-y-4">
                             <div className="flex items-center space-x-6">
-                                <button
-                                    onClick={() => setBpm((prev) => Math.max(40, prev - 1))}
-                                    className="w-8 h-8 flex items-center justify-center rounded-full border border-cadenza-border text-slate-500 dark:text-cadenza-light hover:border-cadenza-neon hover:text-cadenza-neon transition-all font-light text-xl"
-                                >–</button>
+                                <button onClick={() => setBpm(prev => Math.max(40, prev - 1))} className="w-8 h-8 flex items-center justify-center rounded-full border border-cadenza-border text-cadenza-light hover:border-cadenza-neon hover:text-cadenza-neon transition-all font-light text-xl">–</button>
                                 <div className="text-center">
                                     <div className="text-5xl font-black tracking-tighter leading-none">{bpm}</div>
-                                    <p className="text-[8px] font-black text-slate-500 dark:text-cadenza-light uppercase tracking-widest mt-1">BPM</p>
+                                    <p className="text-[8px] font-black text-cadenza-light uppercase tracking-widest mt-1">BPM</p>
                                 </div>
-                                <button
-                                    onClick={() => setBpm((prev) => Math.min(240, prev + 1))}
-                                    className="w-8 h-8 flex items-center justify-center rounded-full border border-cadenza-border text-slate-500 dark:text-cadenza-light hover:border-cadenza-neon hover:text-cadenza-neon transition-all font-light text-xl"
-                                >+</button>
+                                <button onClick={() => setBpm(prev => Math.min(240, prev + 1))} className="w-8 h-8 flex items-center justify-center rounded-full border border-cadenza-border text-cadenza-light hover:border-cadenza-neon hover:text-cadenza-neon transition-all font-light text-xl">+</button>
                             </div>
-                            <input
-                                type="range"
-                                min="40"
-                                max="240"
-                                value={bpm}
-                                onChange={(e) => setBpm(parseInt(e.target.value))}
-                                className="w-full h-1 bg-cadenza-border rounded-lg appearance-none cursor-pointer accent-cadenza-neon"
-                            />
+                            <input type="range" min="40" max="240" value={bpm} onChange={(e) => setBpm(parseInt(e.target.value))} className="w-full h-1 bg-cadenza-border rounded-lg appearance-none cursor-pointer accent-cadenza-neon" />
                         </div>
                     </section>
 
