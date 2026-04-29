@@ -48,11 +48,18 @@ export default function Register() {
     };
 
     const rightColumn = (
-        <div className="hidden lg:flex w-1/3 bg-gradient-to-br from-cadenza-bg via-cadenza-bg to-cadenza-blue/20 items-center justify-center p-8 border-l border-cadenza-border">
-            <div className="text-center space-y-2">
-                <span className="text-4xl text-white/70 font-black block">Explora.</span>
-                <span className="text-4xl text-white/90 font-black block">Aisla.</span>
-                <span className="text-4xl text-cadenza-neon font-black block">Domina.</span>
+        <div className="hidden lg:flex w-1/3 min-h-screen bg-gradient-to-br from-cadenza-bg dark:from-cadenza-blue/20 to-cadenza-blue/20 dark:to-cadenza-bg relative items-center justify-center p-12 border-l border-cadenza-border transition-colors duration-300">
+            <div className="absolute inset-0 bg-grid-white/[0.02] [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))]"></div>
+            <div className="relative z-10 text-center space-y-4">
+                <span className="text-6xl text-cadenza-light font-black tracking-tight block transition-colors">
+                    Explora.
+                </span>
+                <span className="text-6xl text-cadenza-text font-black tracking-tight block transition-colors">
+                    Aisla.
+                </span>
+                <span className="text-6xl text-cadenza-neon font-black tracking-tight block">
+                    Domina.
+                </span>
             </div>
         </div>
     );
@@ -90,7 +97,7 @@ export default function Register() {
                             required
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-black/20 border-2 border-cadenza-border rounded-xl px-5 py-4 text-gray-900 dark:text-cadenza-text placeholder:text-slate-400 dark:placeholder:text-cadenza-light/50 focus:outline-none focus:border-cadenza-neon transition-colors"
+                            className="w-full bg-slate-50 dark:bg-black/20 border-2 border-cadenza-border rounded-xl px-5 py-4 text-sm text-gray-900 dark:text-cadenza-text placeholder:text-slate-400 dark:placeholder:text-cadenza-light/50 focus:outline-none focus:border-cadenza-neon transition-colors"
                             placeholder="Ej: Mozart99"
                         />
                     </div>
@@ -104,7 +111,7 @@ export default function Register() {
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-black/20 border-2 border-cadenza-border rounded-xl px-5 py-4 text-gray-900 dark:text-cadenza-text placeholder:text-slate-400 dark:placeholder:text-cadenza-light/50 focus:outline-none focus:border-cadenza-neon transition-colors"
+                            className="w-full bg-slate-50 dark:bg-black/20 border-2 border-cadenza-border rounded-xl px-5 py-4 text-sm text-gray-900 dark:text-cadenza-text placeholder:text-slate-400 dark:placeholder:text-cadenza-light/50 focus:outline-none focus:border-cadenza-neon transition-colors"
                             placeholder="pianista@cadenza.com"
                         />
                     </div>
@@ -126,9 +133,9 @@ export default function Register() {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className={`w-full mt-2 py-3 rounded-xl font-black text-xs tracking-widest transition-all ${isLoading
-                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                                : 'bg-cadenza-blue text-white hover:scale-[1.01]'
+                        className={`w-full mt-2 py-4 rounded-xl font-black tracking-widest transition-all duration-300 shadow-md ${isLoading
+                            ? 'bg-slate-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed'
+                            : 'bg-cadenza-neon text-white dark:text-cadenza-bg hover:opacity-90 hover:scale-[1.01] cursor-pointer'
                             }`}
                     >
                         {isLoading ? 'CREANDO...' : 'REGISTRARSE'}

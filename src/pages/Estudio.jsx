@@ -11,16 +11,14 @@ export default function Estudio() {
     const autorDeLaObra = location.state?.autorObra || '';
     const backingUrl = location.state?.backingUrl || null;
     const bpmDetectado = location.state?.bpmDetectado || 120;
+    
+    // NUEVO: Pillamos el contexto que nos pasa el Dashboard
+    const contextoIA = location.state?.contextoIA || 'No hay información histórica disponible para esta obra.';
 
-    // 1. Añadimos startMetronome y stopMetronome extrayéndolos del hook
     const { bpm, setBpm, isPlaying: isMetronomePlaying, toggleMetronome, startMetronome, stopMetronome } = useMetronome(Math.round(bpmDetectado));
     
-    const [obraInfo, setObraInfo] = useState('Cargando...');
-    const [loadingIA, setLoadingIA] = useState(true);
     const [isRecording, setIsRecording] = useState(false);
     const [recordedUrl, setRecordedUrl] = useState(null);
-    
-    // 2. Nuevo estado para saber si la mezcla principal está sonando
     const [isMasterPlaying, setIsMasterPlaying] = useState(false);
 
     const backingRef = useRef(null);
@@ -122,18 +120,15 @@ export default function Estudio() {
         }
     };
 
-    // 3. ACTUALIZACIÓN: handleMasterPlay ahora es un verdadero Play/Pause sincronizado
     const handleMasterPlay = async () => {
         await initWebAudio();
         
         if (isMasterPlaying) {
-            // PAUSAR TODO
             if (backingRef.current) backingRef.current.pause();
             if (recordedRef.current && recordedUrl) recordedRef.current.pause();
             stopMetronome();
             setIsMasterPlaying(false);
         } else {
-            // REPRODUCIR TODO (Haciendo resume)
             if (backingRef.current) {
                 connectAudioElement(backingRef.current);
                 backingRef.current.play();
@@ -146,30 +141,6 @@ export default function Estudio() {
             setIsMasterPlaying(true);
         }
     };
-
-    // --- CONTEXTO IA ---
-    useEffect(() => {
-        const fetchIAContext = async () => {
-            try {
-                setLoadingIA(true);
-                const query = autorDeLaObra
-                    ? `${nombreDeLaObra} de ${autorDeLaObra}`
-                    : nombreDeLaObra;
-                const response = await fetch('http://127.0.0.1:8000/api/contexto/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre_obra: query }),
-                });
-                const data = await response.json();
-                setObraInfo(data.contexto);
-            } catch (error) {
-                setObraInfo('Error de conexión con la IA: ' + error);
-            } finally {
-                setLoadingIA(false);
-            }
-        };
-        fetchIAContext();
-    }, [nombreDeLaObra, autorDeLaObra]);
 
     return (
         <AppLayout
@@ -225,7 +196,6 @@ export default function Estudio() {
                             disabled={!backingUrl}
                             className="w-12 h-12 bg-cadenza-neon rounded-full text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all disabled:opacity-20 relative z-10"
                         >
-                            {/* 4. Cambiamos el icono dinámicamente entre Play y Pause */}
                             {isMasterPlaying ? (
                                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                                     <rect x="6" y="5" width="4" height="14" rx="1" />
@@ -290,7 +260,7 @@ export default function Estudio() {
                         )}
                     </section>
 
-                    {/* CONTEXTO IA */}
+                    {/* CONTEXTO IA (Limpiado y estático) */}
                     <section className="bg-cadenza-card p-8 rounded-2xl border-l-4 border-cadenza-neon shadow-md text-left">
                         <h3 className="text-xs font-black text-cadenza-neon mb-3 uppercase italic tracking-tight flex items-center space-x-2">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
@@ -298,10 +268,9 @@ export default function Estudio() {
                             </svg>
                             <span>Contexto Musicológico</span>
                         </h3>
-                        {loadingIA
-                            ? <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded animate-pulse w-full" />
-                            : <p className="text-cadenza-text font-medium leading-relaxed italic text-xs">"{obraInfo}"</p>
-                        }
+                        <p className="text-cadenza-text font-medium leading-relaxed italic text-xs">
+                            "{contextoIA}"
+                        </p>
                     </section>
                 </div>
 
@@ -343,7 +312,6 @@ export default function Estudio() {
                                 {bpmDetectado !== 120 && <span className="text-[7px] font-black bg-cadenza-neon/20 text-cadenza-neon px-2 py-0.5 rounded-full uppercase tracking-tighter">IA BPM</span>}
                             </div>
 
-                            {/* BOTÓN TOGGLE METRÓNOMO */}
                             <button
                                 onClick={toggleMetronome}
                                 className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isMetronomePlaying ? 'bg-cadenza-neon text-black shadow-[0_0_10px_rgba(0,242,255,0.4)]' : 'bg-slate-200 dark:bg-white/10 text-slate-400 dark:text-cadenza-light hover:text-white hover:bg-cadenza-border'}`}

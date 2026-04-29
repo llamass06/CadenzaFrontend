@@ -40,13 +40,23 @@ export default function Login() {
     }
   };
 
+
   const rightColumn = (
-    <div className="hidden lg:flex w-1/3 min-h-screen bg-gradient-to-br from-cadenza-blue via-cadenza-bg to-cadenza-bg relative items-center justify-center p-12 border-l border-cadenza-border">
+    <div className="hidden lg:flex w-1/3 min-h-screen bg-gradient-to-br from-cadenza-blue/10 via-cadenza-bg to-cadenza-bg relative items-center justify-center p-12 border-l border-cadenza-border">
       <div className="absolute inset-0 bg-grid-white/[0.02] [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))]"></div>
       <div className="relative z-10 text-center space-y-4">
-        <span className="text-6xl text-white/90 font-black tracking-tight block">Toca.</span>
-        <span className="text-6xl text-white/70 font-black tracking-tight block">Graba.</span>
-        <span className="text-6xl text-cadenza-neon font-black tracking-tight block">Mejora.</span>
+        {/* Usa tu variable de texto principal (Oscuro en modo claro, claro en modo oscuro) */}
+        <span className="text-6xl text-cadenza-text font-black tracking-tight block transition-colors">
+          Toca.
+        </span>
+        {/* Usa tu variable de texto secundario para el efecto desvanecido */}
+        <span className="text-6xl text-cadenza-light font-black tracking-tight block transition-colors">
+          Graba.
+        </span>
+        {/* El neón se queda intacto */}
+        <span className="text-6xl text-cadenza-neon font-black tracking-tight block">
+          Mejora.
+        </span>
       </div>
     </div>
   );
@@ -100,8 +110,8 @@ export default function Login() {
             type="submit"
             disabled={isLoading}
             className={`w-full py-5 rounded-xl font-black tracking-widest transition-all duration-300 shadow-md ${isLoading
-                ? 'bg-slate-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed'
-                : 'bg-cadenza-neon text-white dark:text-cadenza-bg hover:opacity-90 hover:scale-[1.01]'
+              ? 'bg-slate-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed'
+              : 'bg-cadenza-neon text-white dark:text-cadenza-bg hover:opacity-90 hover:scale-[1.01]'
               }`}
           >
             {isLoading ? 'CONECTANDO...' : 'ENTRAR AL ESTUDIO'}

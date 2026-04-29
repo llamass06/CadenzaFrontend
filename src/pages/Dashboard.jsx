@@ -19,11 +19,25 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchMisObras = async () => {
       const token = localStorage.getItem('cadenza_token');
-      if (!token) return;
+
+      // Si ni siquiera hay token, lo mandamos al login
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
       try {
         const response = await fetch('http://127.0.0.1:8000/api/v1/mis-obras', {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        // AQUÍ ESTÁ LA MAGIA: Si el backend dice 401 (Token caducado o falso)
+        if (response.status === 401) {
+          localStorage.removeItem('cadenza_token'); // Limpiamos la basura
+          navigate('/login'); // Lo mandamos a iniciar sesión de nuevo
+          return; // Cortamos la ejecución
+        }
+
         if (response.ok) {
           const data = await response.json();
           setObrasRecientes(data);
@@ -34,8 +48,9 @@ export default function Dashboard() {
         setCargandoObras(false);
       }
     };
+
     fetchMisObras();
-  }, []);
+  }, [navigate]);
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -69,11 +84,11 @@ export default function Dashboard() {
     }
 
     setIsUploading(true);
-    setUploadProgress(0); 
+    setUploadProgress(0);
 
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => {
-        if (prev >= 95) return 95; 
+        if (prev >= 95) return 95;
         return prev + Math.max(0.5, (95 - prev) * 0.05);
       });
     }, 500);
@@ -108,6 +123,7 @@ export default function Dashboard() {
             autorObra: autorParaIA,
             backingUrl: data.backing_url,
             bpmDetectado: data.bpm,
+            contextoIA: data.contexto
           },
         });
       }, 500);
@@ -146,13 +162,14 @@ export default function Dashboard() {
         autorObra: obra.artist,
         backingUrl: obra.backing_url,
         bpmDetectado: obra.bpm,
+        contextoIA: obra.contexto
       },
     });
   };
 
   // --- DATOS DINÁMICOS DEL ARCHIVO ---
-  const formatoAudio = selectedFile 
-    ? selectedFile.name.split('.').pop().toUpperCase() 
+  const formatoAudio = selectedFile
+    ? selectedFile.name.split('.').pop().toUpperCase()
     : 'MP3 / WAV';
 
   let calidadAudio = 'Lossless / HQ';
@@ -163,8 +180,15 @@ export default function Dashboard() {
     const tipo = formatosLossless.includes(formatoAudio) ? 'Lossless' : 'Audio';
     calidadAudio = `${tipo} (${pesoMB} MB)`;
   }
-  
+
   const colorTextoInfo = selectedFile ? 'text-cadenza-neon' : 'text-cadenza-text';
+
+  // --- RESTRICCIÓN DE USUARIO NORMAL ---
+  const MAX_OBRAS = 6; // Límite real bajado a 6 obras
+  const totalObras = obrasRecientes.length;
+  const limiteAlcanzado = totalObras >= MAX_OBRAS;
+  const porcentajeUso = Math.min((totalObras / MAX_OBRAS) * 100, 100);
+  const espacioEstimado = (totalObras * 15.5).toFixed(1); 
 
   return (
     <AppLayout
@@ -177,7 +201,6 @@ export default function Dashboard() {
             <h1 className="text-3xl font-black tracking-tighter italic">MI <span className="text-cadenza-neon">DASHBOARD</span></h1>
             <p className="text-slate-500 dark:text-cadenza-light font-bold mt-1 uppercase tracking-[0.3em] text-[10px]">Tu centro de control musical</p>
           </div>
-          <button onClick={() => navigate(-1)} className="ml-auto text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-cadenza-light hover:text-cadenza-neon transition-colors">← Volver</button>
         </header>
       )}
     >
@@ -188,17 +211,34 @@ export default function Dashboard() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-cadenza-neon opacity-5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
 
           <div className="relative z-10 space-y-8">
-            <div className="text-left">
-              <h2 className="text-2xl font-black tracking-tight uppercase italic">Nueva Obra</h2>
-              <p className="text-slate-500 dark:text-cadenza-light text-sm font-medium">Sube audio para aislar el acompañamiento</p>
+            <div className="text-left flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-black tracking-tight uppercase italic">Nueva Obra</h2>
+                <p className="text-slate-500 dark:text-cadenza-light text-sm font-medium">Sube audio para aislar el acompañamiento</p>
+              </div>
+              {limiteAlcanzado && (
+                <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest animate-pulse">
+                  Límite de plan alcanzado
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              
+
               {/* ZONA IZQUIERDA: Dropzone */}
               <div className="flex flex-col">
-                <label className={`flex flex-col items-center justify-center min-h-[280px] border-2 border-dashed rounded-2xl cursor-pointer transition-all relative overflow-hidden group ${isUploading ? 'opacity-50 cursor-not-allowed border-cadenza-border bg-slate-50 dark:bg-black/10' : 'border-cadenza-border bg-slate-50 dark:bg-black/20 hover:border-cadenza-neon hover:bg-cadenza-neon/5'}`}>
-                  {selectedFile ? (
+                <label className={`flex flex-col items-center justify-center min-h-[280px] border-2 border-dashed rounded-2xl transition-all relative overflow-hidden group ${isUploading || limiteAlcanzado ? 'opacity-50 cursor-not-allowed border-cadenza-border bg-slate-50 dark:bg-black/10' : 'cursor-pointer border-cadenza-border bg-slate-50 dark:bg-black/20 hover:border-cadenza-neon hover:bg-cadenza-neon/5'}`}>
+                  {limiteAlcanzado ? (
+                    <div className="flex flex-col items-center text-center space-y-4 p-6">
+                      <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 text-red-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-red-500 mb-1 uppercase tracking-widest">Almacenamiento Lleno</p>
+                        <span className="text-[10px] text-slate-500 dark:text-cadenza-light font-bold">Elimina una obra para subir otra</span>
+                      </div>
+                    </div>
+                  ) : selectedFile ? (
                     <div className="flex flex-col items-center text-center space-y-4 p-6">
                       <div className="w-16 h-16 bg-cadenza-neon/10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,242,255,0.1)]">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8 text-cadenza-neon"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
@@ -217,9 +257,9 @@ export default function Dashboard() {
                       </div>
                     </div>
                   )}
-                  <input type="file" className="hidden" accept=".mp3,.wav,.flac,.m4a" onChange={handleFileSelect} disabled={isUploading} />
+                  <input type="file" className="hidden" accept=".mp3,.wav,.flac,.m4a" onChange={handleFileSelect} disabled={isUploading || limiteAlcanzado} />
                 </label>
-                {selectedFile && !isUploading && (
+                {selectedFile && !isUploading && !limiteAlcanzado && (
                   <button onClick={clearSelection} className="mt-4 text-[10px] text-red-500/70 hover:text-red-500 uppercase font-black tracking-widest transition-colors flex items-center justify-center space-x-2"><span>✕ Quitar archivo</span></button>
                 )}
               </div>
@@ -229,11 +269,11 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   <div className="space-y-2 text-left">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-cadenza-light ml-1">Título de la Obra</label>
-                    <input type="text" value={nombreParaIA} onChange={(e) => setNombreParaIA(e.target.value)} disabled={isUploading} className="w-full bg-slate-50 dark:bg-black/20 border-2 border-cadenza-border rounded-xl px-4 py-4 text-sm text-gray-900 dark:text-cadenza-text focus:border-cadenza-neon outline-none transition-colors" />
+                    <input type="text" value={nombreParaIA} onChange={(e) => setNombreParaIA(e.target.value)} disabled={isUploading || limiteAlcanzado} className="w-full bg-slate-50 dark:bg-black/20 border-2 border-cadenza-border rounded-xl px-4 py-4 text-sm text-gray-900 dark:text-cadenza-text focus:border-cadenza-neon outline-none transition-colors disabled:opacity-50" />
                   </div>
                   <div className="space-y-2 text-left">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-cadenza-light ml-1">Autor / Compositor</label>
-                    <input type="text" value={autorParaIA} onChange={(e) => setAutorParaIA(e.target.value)} disabled={isUploading} className="w-full bg-slate-50 dark:bg-black/20 border-2 border-cadenza-border rounded-xl px-4 py-4 text-sm text-gray-900 dark:text-cadenza-text focus:border-cadenza-neon outline-none transition-colors" />
+                    <input type="text" value={autorParaIA} onChange={(e) => setAutorParaIA(e.target.value)} disabled={isUploading || limiteAlcanzado} className="w-full bg-slate-50 dark:bg-black/20 border-2 border-cadenza-border rounded-xl px-4 py-4 text-sm text-gray-900 dark:text-cadenza-text focus:border-cadenza-neon outline-none transition-colors disabled:opacity-50" />
                   </div>
                 </div>
 
@@ -292,6 +332,10 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+            ) : limiteAlcanzado ? (
+              <button disabled className="w-full py-6 bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-cadenza-light rounded-xl font-black tracking-[0.2em] uppercase cursor-not-allowed">
+                LÍMITE ALCANZADO (6/6)
+              </button>
             ) : (
               <button onClick={handleUpload} disabled={!selectedFile} className="w-full py-6 bg-cadenza-neon text-white dark:text-cadenza-bg rounded-xl font-black tracking-[0.2em] uppercase shadow-[0_0_25px_rgba(0,242,255,0.2)] hover:shadow-[0_0_35px_rgba(0,242,255,0.4)] hover:scale-[1.01] transition-all disabled:opacity-20 disabled:shadow-none">SEPARAR PISTAS</button>
             )}
@@ -303,8 +347,10 @@ export default function Dashboard() {
           <div className="bg-cadenza-card border border-cadenza-border rounded-3xl p-8 shadow-md">
             <h2 className="text-xs font-black mb-6 uppercase tracking-[0.2em] border-b border-cadenza-border pb-3 text-slate-500 dark:text-cadenza-light text-left">Biblioteca Reciente</h2>
             <div className="space-y-4 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
-              {cargandoObras ? <div className="h-20 bg-slate-100 dark:bg-white/5 rounded-xl animate-pulse" /> : 
-                obrasRecientes.map((obra) => (
+              {cargandoObras ? <div className="h-20 bg-slate-100 dark:bg-white/5 rounded-xl animate-pulse" /> :
+                obrasRecientes.length === 0 ? (
+                  <p className="text-[10px] text-cadenza-light italic text-center py-4">No tienes obras en tu biblioteca aún.</p>
+                ) : obrasRecientes.map((obra) => (
                   <div key={obra.id} onClick={() => abrirEstudioDesdeHistorial(obra)} className="p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-cadenza-border flex items-center justify-between cursor-pointer hover:border-cadenza-neon transition-all group">
                     <div className="flex items-center space-x-4 flex-1 min-w-0">
                       <div className="w-8 h-8 flex-shrink-0 rounded-full bg-cadenza-blue/10 flex items-center justify-center text-cadenza-blue">
@@ -328,19 +374,52 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-cadenza-card border border-cadenza-border rounded-3xl p-8 shadow-md">
-            <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-cadenza-light text-left mb-8">Actividad Semanal</h3>
-            <div className="flex items-end justify-between h-32 border-b border-cadenza-border pb-2 px-1 mb-4">
-              {[35, 60, 45, 85, 50, 100, 70].map((height, i) => (
-                <div key={i} className="w-4 bg-cadenza-blue/20 dark:bg-cadenza-blue/30 rounded-t-sm hover:bg-cadenza-neon transition-colors relative group cursor-pointer" style={{ height: `${height}%` }}>
-                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-cadenza-text text-cadenza-bg text-[9px] font-bold py-0.5 px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{height}m</div>
-                </div>
-              ))}
+          {/* ESTADO DE ALMACENAMIENTO */}
+          <div className="bg-cadenza-card border border-cadenza-border rounded-3xl p-6 shadow-md relative overflow-hidden">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-cadenza-light flex items-center">
+                <svg className="w-3 h-3 mr-1.5 text-cadenza-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                </svg>
+                Almacenamiento Cloud
+              </h3>
+              <span className={`${limiteAlcanzado ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-cadenza-neon/10 text-cadenza-neon border-cadenza-neon/20'} border px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-colors`}>
+                Plan Free
+              </span>
             </div>
-            <div className="flex justify-between text-[10px] text-slate-400 dark:text-cadenza-light font-black px-1 uppercase italic">
-              <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
+
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between items-end mb-2">
+                  <span className={`text-2xl font-black leading-none ${limiteAlcanzado ? 'text-red-500' : 'text-cadenza-text'}`}>
+                    {totalObras} <span className="text-xs text-slate-500 dark:text-cadenza-light font-bold">/ {MAX_OBRAS} Obras</span>
+                  </span>
+                  <span className={`text-[10px] font-bold tracking-widest ${limiteAlcanzado ? 'text-red-500 animate-pulse' : 'text-cadenza-neon'}`}>
+                    {Math.round(porcentajeUso)}%
+                  </span>
+                </div>
+                {/* Barra de progreso de almacenamiento */}
+                <div className="h-2.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-1000 ease-out ${limiteAlcanzado ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-cadenza-neon'}`} 
+                    style={{ width: `${porcentajeUso}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-left pt-2">
+                <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-cadenza-border">
+                  <p className="text-[7px] text-slate-500 dark:text-cadenza-light font-black uppercase tracking-widest mb-1">Espacio Usado</p>
+                  <p className="text-[11px] text-cadenza-text font-bold">~ {espacioEstimado} MB</p>
+                </div>
+                <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-cadenza-border">
+                  <p className="text-[7px] text-slate-500 dark:text-cadenza-light font-black uppercase tracking-widest mb-1">Ancho de Banda</p>
+                  <p className="text-[11px] text-cadenza-text font-bold text-green-500">Ilimitado</p>
+                </div>
+              </div>
             </div>
           </div>
+
         </div>
       </div>
     </AppLayout>

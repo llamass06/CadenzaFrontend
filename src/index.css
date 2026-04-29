@@ -9,6 +9,14 @@
   --color-cadenza-blue: var(--accent-blue);
   --color-cadenza-neon: var(--accent-neon);
   --color-cadenza-border: var(--border-subtle);
+
+  /* AUMENTO DE TEXTO GLOBAL */
+  /* Engañamos a Tailwind para que sus tamaños por defecto sean más grandes */
+  --text-xs: 0.825rem; /* Original: 0.75rem */
+  --text-sm: 0.95rem;  /* Original: 0.875rem */
+  --text-base: 1.1rem; /* Original: 1rem */
+  --text-lg: 1.2rem;   /* Original: 1.125rem */
+  --text-xl: 1.35rem;  /* Original: 1.25rem */
 }
 
 /* ☀️ MODO CLARO (Por defecto) */
@@ -37,4 +45,7 @@ body {
   background-color: var(--bg-main);
   color: var(--text-main);
   transition: background-color 0.3s ease, color 0.3s ease;
+  /* Suavizado de fuentes para que se vean nítidas al ampliarlas */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
