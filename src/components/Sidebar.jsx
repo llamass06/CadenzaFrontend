@@ -205,7 +205,7 @@ export default function Sidebar({ isOpen, setIsOpen, isDark, setIsDark, showUser
                 autorObra: obra.artist, 
                 backingUrl: obra.backing_url, 
                 bpmDetectado: obra.bpm, 
-                contextoMusicologico: obra.contextoMusicologico
+                contextoIA: obra.contexto
             } 
         });
         setIsOpen(false);
@@ -286,12 +286,28 @@ export default function Sidebar({ isOpen, setIsOpen, isDark, setIsDark, showUser
                     <div>
                         <SectionLabel text="Engine" />
                         <div className="rounded-xl p-3 space-y-3 bg-cadenza-bg/60 border border-cadenza-border">
-                            <StatRow icon={Icons.chip} label="IA Engine" value="DEMUCS V4" valueClass="bg-cadenza-blue/15 text-cadenza-blue border-cadenza-blue/30" />
-                            <StatRow icon={Icons.signal} label="Latencia" value="BAJA · 11ms" valueClass="bg-green-500/15 text-green-500 border-green-500/25" />
+                            <StatRow 
+                                icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><rect x="9" y="9" width="6" height="6" /><line x1="9" y1="1" x2="9" y2="4" /><line x1="15" y1="1" x2="15" y2="4" /><line x1="9" y1="20" x2="9" y2="23" /><line x1="15" y1="20" x2="15" y2="23" /><line x1="20" y1="9" x2="23" y2="9" /><line x1="20" y1="14" x2="23" y2="14" /><line x1="1" y1="9" x2="4" y2="9" /><line x1="1" y1="14" x2="4" y2="14" /></svg>} 
+                                label="Modelo IA" 
+                                value="HTDEMUCS v4" 
+                                valueClass="bg-cadenza-neon/15 text-cadenza-neon border-cadenza-neon/30" 
+                            />
+                            <StatRow 
+                                icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><rect x="2" y="2" width="20" height="8" rx="2" ry="2" /><rect x="2" y="14" width="20" height="8" rx="2" ry="2" /><line x1="6" y1="6" x2="6.01" y2="6" /><line x1="6" y1="18" x2="6.01" y2="18" /></svg>} 
+                                label="Servidor" 
+                                value="GPU ONLINE" 
+                                valueClass="bg-green-500/15 text-green-500 border-green-500/25" 
+                            />
+                            <StatRow 
+                                icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>} 
+                                label="Rendimiento" 
+                                value="ÓPTIMO" 
+                                valueClass="bg-cadenza-blue/15 text-cadenza-blue border-cadenza-blue/30" 
+                            />
                             <div className="h-px bg-cadenza-border" />
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-cadenza-light/40">{Icons.moon}</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-cadenza-light/40"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
                                     <span className="text-[9px] font-semibold uppercase tracking-widest text-cadenza-light/50">Modo Oscuro</span>
                                 </div>
                                 <button onClick={() => setIsDark(!isDark)} className={`relative w-9 h-5 rounded-full p-0.5 transition-all duration-300 ${isDark ? 'bg-cadenza-neon shadow-[0_0_10px] shadow-cadenza-neon/30' : 'bg-cadenza-border'}`}>
