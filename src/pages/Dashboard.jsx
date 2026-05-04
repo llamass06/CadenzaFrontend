@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as jsmediatags from 'jsmediatags';
 import AppLayout from '../components/AppLayout';
+import { fetchMisObras, separarPistas, eliminarObraApi } from '../services/api';
+import StorageStatus from '../components/dashboard/StorageStatus';
+import LibraryPanel from '../components/dashboard/LibraryPanel';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -17,39 +20,23 @@ export default function Dashboard() {
   const [cargandoObras, setCargandoObras] = useState(true);
 
   useEffect(() => {
-    const fetchMisObras = async () => {
-      const token = localStorage.getItem('cadenza_token');
-
-      // Si ni siquiera hay token, lo mandamos al login
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-
+    const loadObras = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/v1/mis-obras', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        // AQUÍ ESTÁ LA MAGIA: Si el backend dice 401 (Token caducado o falso)
-        if (response.status === 401) {
-          localStorage.removeItem('cadenza_token'); // Limpiamos la basura
-          navigate('/login'); // Lo mandamos a iniciar sesión de nuevo
-          return; // Cortamos la ejecución
-        }
-
-        if (response.ok) {
-          const data = await response.json();
-          setObrasRecientes(data);
-        }
+        const data = await fetchMisObras();
+        setObrasRecientes(data);
       } catch (error) {
-        console.error('Error al cargar las obras:', error);
+        if (error.message === "UNAUTHORIZED") {
+          localStorage.removeItem('cadenza_token');
+          navigate('/login');
+        } else {
+          console.error('Error al cargar las obras:', error);
+        }
       } finally {
         setCargandoObras(false);
       }
     };
 
-    fetchMisObras();
+    loadObras();
   }, [navigate]);
 
   const handleFileSelect = (event) => {
@@ -98,21 +85,8 @@ export default function Dashboard() {
     formData.append('title', nombreParaIA);
     formData.append('artist', autorParaIA || '');
 
-    const token = localStorage.getItem('cadenza_token');
-
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/separar', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorDetail = await response.json();
-        throw new Error(errorDetail.detail || 'Error en el servidor');
-      }
-
-      const data = await response.json();
+      const data = await separarPistas(formData);
       clearInterval(progressInterval);
       setUploadProgress(100);
 
@@ -141,14 +115,8 @@ export default function Dashboard() {
     const confirmar = window.confirm('¿Estás seguro de que deseas eliminar esta obra de tu biblioteca?');
     if (confirmar) {
       try {
-        const token = localStorage.getItem('cadenza_token');
-        const response = await fetch(`http://127.0.0.1:8000/api/v1/obras/${id}`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.ok) {
-          setObrasRecientes(obrasRecientes.filter((o) => o.id !== id));
-        }
+        await eliminarObraApi(id);
+        setObrasRecientes(obrasRecientes.filter((o) => o.id !== id));
       } catch (error) {
         console.error('Error al eliminar:', error);
       }
@@ -207,7 +175,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
 
         {/* Panel de Subida */}
-        <div className="lg:col-span-8 bg-cadenza-card border border-cadenza-border rounded-3xl p-10 shadow-lg relative overflow-hidden flex flex-col justify-center min-h-[500px]">
+        <div className="lg:col-span-8 cadenza-panel relative overflow-hidden flex flex-col justify-center min-h-[500px]">
           <div className="absolute top-0 right-0 w-64 h-64 bg-cadenza-neon opacity-5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
 
           <div className="relative z-10 space-y-8">
@@ -337,89 +305,21 @@ export default function Dashboard() {
                 LÍMITE ALCANZADO (6/6)
               </button>
             ) : (
-              <button onClick={handleUpload} disabled={!selectedFile} className="w-full py-6 bg-cadenza-neon text-white dark:text-cadenza-bg rounded-xl font-black tracking-[0.2em] uppercase shadow-[0_0_25px_rgba(0,242,255,0.2)] hover:shadow-[0_0_35px_rgba(0,242,255,0.4)] hover:scale-[1.01] transition-all disabled:opacity-20 disabled:shadow-none">SEPARAR PISTAS</button>
+              <button onClick={handleUpload} disabled={!selectedFile} className="cadenza-btn-neon">SEPARAR PISTAS</button>
             )}
           </div>
         </div>
 
         {/* Columna Derecha: Biblioteca */}
         <div className="lg:col-span-4 space-y-8">
-          <div className="bg-cadenza-card border border-cadenza-border rounded-3xl p-8 shadow-md">
-            <h2 className="text-xs font-black mb-6 uppercase tracking-[0.2em] border-b border-cadenza-border pb-3 text-slate-500 dark:text-cadenza-light text-left">Biblioteca Reciente</h2>
-            <div className="space-y-4 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
-              {cargandoObras ? <div className="h-20 bg-slate-100 dark:bg-white/5 rounded-xl animate-pulse" /> :
-                obrasRecientes.length === 0 ? (
-                  <p className="text-[10px] text-cadenza-light italic text-center py-4">No tienes obras en tu biblioteca aún.</p>
-                ) : obrasRecientes.map((obra) => (
-                  <div key={obra.id} onClick={() => abrirEstudioDesdeHistorial(obra)} className="p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-cadenza-border flex items-center justify-between cursor-pointer hover:border-cadenza-neon transition-all group">
-                    <div className="flex items-center space-x-4 flex-1 min-w-0">
-                      <div className="w-8 h-8 flex-shrink-0 rounded-full bg-cadenza-blue/10 flex items-center justify-center text-cadenza-blue">
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" /></svg>
-                      </div>
-                      <div className="text-left flex-1 min-w-0">
-                        <p className="font-black text-[12px] uppercase truncate group-hover:text-cadenza-neon transition-colors leading-tight">{obra.title}</p>
-                        <p className="text-[10px] text-cadenza-light font-bold uppercase truncate opacity-80">{obra.artist || 'Autor desconocido'}</p>
-                        <p className="text-[8px] text-cadenza-light/60 font-black mt-0.5 uppercase italic tracking-widest">{obra.bpm} BPM</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
-                      <button onClick={(e) => eliminarObra(e, obra.id)} className="p-2 text-cadenza-light hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-cadenza-light group-hover:text-cadenza-neon transition-colors" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>
-                    </div>
-                  </div>
-                ))
-              }
-            </div>
-          </div>
+          <LibraryPanel 
+            obrasRecientes={obrasRecientes} 
+            cargandoObras={cargandoObras} 
+            onOpenObra={abrirEstudioDesdeHistorial} 
+            onDeleteObra={eliminarObra} 
+          />
 
-          {/* ESTADO DE ALMACENAMIENTO */}
-          <div className="bg-cadenza-card border border-cadenza-border rounded-3xl p-6 shadow-md relative overflow-hidden">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-cadenza-light flex items-center">
-                <svg className="w-3 h-3 mr-1.5 text-cadenza-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                </svg>
-                Almacenamiento Cloud
-              </h3>
-              <span className={`${limiteAlcanzado ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-cadenza-neon/10 text-cadenza-neon border-cadenza-neon/20'} border px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-colors`}>
-                Plan Free
-              </span>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between items-end mb-2">
-                  <span className={`text-2xl font-black leading-none ${limiteAlcanzado ? 'text-red-500' : 'text-cadenza-text'}`}>
-                    {totalObras} <span className="text-xs text-slate-500 dark:text-cadenza-light font-bold">/ {MAX_OBRAS} Obras</span>
-                  </span>
-                  <span className={`text-[10px] font-bold tracking-widest ${limiteAlcanzado ? 'text-red-500 animate-pulse' : 'text-cadenza-neon'}`}>
-                    {Math.round(porcentajeUso)}%
-                  </span>
-                </div>
-                {/* Barra de progreso de almacenamiento */}
-                <div className="h-2.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full rounded-full transition-all duration-1000 ease-out ${limiteAlcanzado ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-cadenza-neon'}`} 
-                    style={{ width: `${porcentajeUso}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 text-left pt-2">
-                <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-cadenza-border">
-                  <p className="text-[7px] text-slate-500 dark:text-cadenza-light font-black uppercase tracking-widest mb-1">Espacio Usado</p>
-                  <p className="text-[11px] text-cadenza-text font-bold">~ {espacioEstimado} MB</p>
-                </div>
-                <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-cadenza-border">
-                  <p className="text-[7px] text-slate-500 dark:text-cadenza-light font-black uppercase tracking-widest mb-1">Ancho de Banda</p>
-                  <p className="text-[11px] text-cadenza-text font-bold text-green-500">Ilimitado</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
+          <StorageStatus obrasCount={totalObras} maxObras={MAX_OBRAS} />
         </div>
       </div>
     </AppLayout>

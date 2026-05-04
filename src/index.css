@@ -49,3 +49,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@layer components {
+  .cadenza-panel {
+    @apply bg-cadenza-card border border-cadenza-border rounded-3xl shadow-md p-6 md:p-8;
+  }
+  
+  .cadenza-btn-neon {
+    @apply w-full py-6 bg-cadenza-neon text-white dark:text-cadenza-bg rounded-xl font-black tracking-[0.2em] uppercase shadow-[0_0_25px_rgba(0,242,255,0.2)] hover:shadow-[0_0_35px_rgba(0,242,255,0.4)] hover:scale-[1.01] transition-all disabled:opacity-20 disabled:shadow-none;
+  }
+
+  .cadenza-title {
+    @apply text-xs font-black mb-6 uppercase tracking-[0.2em] border-b border-cadenza-border pb-3 text-slate-500 dark:text-cadenza-light text-left;
+  }
+}
