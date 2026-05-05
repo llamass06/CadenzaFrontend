@@ -176,13 +176,13 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
 
         {/* Panel de Subida */}
-        <div className="lg:col-span-8 cadenza-panel !pt-4 relative overflow-hidden flex flex-col justify-center min-h-[500px]">
+        <div className={`lg:col-span-8 cadenza-panel !pt-4 relative overflow-hidden flex flex-col justify-center min-h-[500px] transition-all duration-500 ${limiteAlcanzado ? 'border-red-500/40 shadow-[0_0_30px_rgba(239,68,68,0.15)]' : casiLleno ? 'border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.15)]' : ''}`}>
           <div className="absolute top-0 right-0 w-64 h-64 bg-cadenza-neon opacity-5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
 
           <div className="relative z-10 space-y-8">
             <div className="text-left flex justify-between items-center">
               <div>
-                <h2 className="text-2xl font-black tracking-tight uppercase italic">Nueva Obra</h2>
+                <h2 className={`text-2xl font-black tracking-tight uppercase italic transition-colors ${limiteAlcanzado ? 'text-red-500' : casiLleno ? 'text-amber-500' : ''}`}>Nueva Obra</h2>
                 <p className="text-slate-500 dark:text-cadenza-light text-sm font-medium">Sube audio para aislar el acompañamiento</p>
               </div>
               {limiteAlcanzado ? (
@@ -200,7 +200,7 @@ export default function Dashboard() {
 
               {/* ZONA IZQUIERDA: Dropzone */}
               <div className="flex flex-col">
-                <label className={`flex flex-col items-center justify-center min-h-[280px] border-2 border-dashed rounded-2xl transition-all relative overflow-hidden group ${isUploading || limiteAlcanzado ? 'opacity-50 cursor-not-allowed border-cadenza-border bg-slate-50 dark:bg-black/10' : casiLleno ? 'cursor-pointer border-amber-500/50 bg-amber-500/5 hover:border-amber-500 hover:bg-amber-500/10' : 'cursor-pointer border-cadenza-border bg-slate-50 dark:bg-black/20 hover:border-cadenza-neon hover:bg-cadenza-neon/5'}`}>
+                <label className={`flex flex-col items-center justify-center min-h-[280px] border-2 border-dashed rounded-2xl transition-all duration-300 relative overflow-hidden group ${isUploading ? 'opacity-50 cursor-not-allowed border-cadenza-border bg-slate-50 dark:bg-black/10' : limiteAlcanzado ? 'opacity-70 cursor-not-allowed border-red-500/50 bg-red-50 dark:bg-red-500/5' : casiLleno ? 'cursor-pointer border-cadenza-warning/50 bg-cadenza-warning-bg hover:border-cadenza-warning hover:bg-cadenza-warning-bg/80' : 'cursor-pointer border-cadenza-border bg-slate-50 dark:bg-black/20 hover:border-cadenza-neon hover:bg-cadenza-neon/5'}`}>
                   {limiteAlcanzado ? (
                     <div className="flex flex-col items-center text-center space-y-4 p-6">
                       <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.1)]">
@@ -312,7 +312,7 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : limiteAlcanzado ? (
-              <button disabled className="w-full py-6 bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-cadenza-light rounded-xl font-black tracking-[0.2em] uppercase cursor-not-allowed">
+              <button disabled className="w-full py-6 bg-red-50 dark:bg-red-500/10 text-red-500 border border-red-500/30 rounded-xl font-black tracking-[0.2em] uppercase cursor-not-allowed transition-colors">
                 LÍMITE ALCANZADO (6/6)
               </button>
             ) : casiLleno ? (

@@ -25,10 +25,10 @@ export default function StorageStatus({ obrasCount, maxObras = 6 }) {
     };
 
     return (
-        <div className="cadenza-panel relative overflow-hidden">
+        <div className={`cadenza-panel relative overflow-hidden transition-all duration-500 ${limiteAlcanzado ? 'border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.15)]' : casiLleno ? 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.15)]' : ''}`}>
             <div className="flex justify-between items-center mb-6">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-cadenza-light flex items-center">
-                    <svg className="w-3 h-3 mr-1.5 text-cadenza-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <h3 className={`text-[10px] font-black uppercase tracking-widest flex items-center transition-colors ${limiteAlcanzado ? 'text-red-500/90' : casiLleno ? 'text-amber-600 dark:text-amber-500/90' : 'text-slate-500 dark:text-cadenza-light'}`}>
+                    <svg className={`w-3 h-3 mr-1.5 transition-colors ${limiteAlcanzado ? 'text-red-500' : casiLleno ? 'text-amber-500' : 'text-cadenza-neon'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
                     </svg>
                     Almacenamiento Cloud
@@ -41,35 +41,35 @@ export default function StorageStatus({ obrasCount, maxObras = 6 }) {
             <div className="space-y-4">
                 <div>
                     <div className="flex justify-between items-end mb-2">
-                        <span className={`text-2xl font-black leading-none ${getStatusColor()}`}>
-                            {obrasCount} <span className="text-xs text-slate-500 dark:text-cadenza-light font-bold">/ {maxObras} Obras</span>
+                        <span className={`text-2xl font-black leading-none transition-colors ${getStatusColor()}`}>
+                            {obrasCount} <span className="text-xs opacity-70 font-bold">/ {maxObras} Obras</span>
                         </span>
-                        <span className={`text-[10px] font-bold tracking-widest ${getStatusColor()} ${limiteAlcanzado || casiLleno ? 'animate-pulse' : ''}`}>
+                        <span className={`text-[10px] font-bold tracking-widest transition-colors ${getStatusColor()} ${limiteAlcanzado || casiLleno ? 'animate-pulse' : ''}`}>
                             {Math.round(porcentajeUso)}%
                         </span>
                     </div>
                     {/* Barra de progreso de almacenamiento */}
-                    <div className="h-2.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                    <div className={`h-2.5 w-full rounded-full overflow-hidden transition-colors ${limiteAlcanzado ? 'bg-red-500/20' : casiLleno ? 'bg-amber-500/20' : 'bg-slate-100 dark:bg-white/5'}`}>
                         <div
                             className={`h-full rounded-full transition-all duration-1000 ease-out ${getBgColor()}`}
                             style={{ width: `${porcentajeUso}%` }}
                         ></div>
                     </div>
                     {casiLleno && !limiteAlcanzado && (
-                        <p className="text-[9px] text-amber-500 font-bold uppercase tracking-widest mt-2 text-right animate-pulse">
+                        <p className="text-[9px] text-amber-600 dark:text-amber-500 font-bold uppercase tracking-widest mt-2 text-right animate-pulse">
                             ¡Solo queda espacio para 1 obra más!
                         </p>
                     )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-left pt-2">
-                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-cadenza-border">
-                        <p className="text-[8px] text-slate-500 dark:text-cadenza-light font-black uppercase tracking-widest mb-1">Espacio Usado</p>
-                        <p className="text-xs text-cadenza-text font-bold">~ {espacioEstimado} MB</p>
+                    <div className={`p-3 rounded-xl border transition-colors ${limiteAlcanzado ? 'bg-red-50 dark:bg-red-500/5 border-red-500/30' : casiLleno ? 'bg-amber-50 dark:bg-amber-500/5 border-amber-500/30' : 'bg-slate-50 dark:bg-white/5 border-cadenza-border'}`}>
+                        <p className={`text-[8px] font-black uppercase tracking-widest mb-1 transition-colors ${limiteAlcanzado ? 'text-red-500/70' : casiLleno ? 'text-amber-600/70 dark:text-amber-500/70' : 'text-slate-500 dark:text-cadenza-light'}`}>Espacio Usado</p>
+                        <p className={`text-xs font-bold transition-colors ${limiteAlcanzado ? 'text-red-600 dark:text-red-400' : casiLleno ? 'text-amber-700 dark:text-amber-400' : 'text-cadenza-text'}`}>~ {espacioEstimado} MB</p>
                     </div>
-                    <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-cadenza-border">
-                        <p className="text-[8px] text-slate-500 dark:text-cadenza-light font-black uppercase tracking-widest mb-1">Obras Restantes</p>
-                        <p className={`text-xs font-bold ${limiteAlcanzado ? 'text-red-500' : casiLleno ? 'text-amber-500' : 'text-cadenza-text'}`}>{maxObras - obrasCount}</p>
+                    <div className={`p-3 rounded-xl border transition-colors ${limiteAlcanzado ? 'bg-red-50 dark:bg-red-500/5 border-red-500/30' : casiLleno ? 'bg-amber-50 dark:bg-amber-500/5 border-amber-500/30' : 'bg-slate-50 dark:bg-white/5 border-cadenza-border'}`}>
+                        <p className={`text-[8px] font-black uppercase tracking-widest mb-1 transition-colors ${limiteAlcanzado ? 'text-red-500/70' : casiLleno ? 'text-amber-600/70 dark:text-amber-500/70' : 'text-slate-500 dark:text-cadenza-light'}`}>Obras Restantes</p>
+                        <p className={`text-xs font-bold transition-colors ${limiteAlcanzado ? 'text-red-500' : casiLleno ? 'text-amber-600 dark:text-amber-500' : 'text-cadenza-text'}`}>{maxObras - obrasCount}</p>
                     </div>
                 </div>
             </div>
