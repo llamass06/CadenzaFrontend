@@ -76,9 +76,9 @@ export default function Dashboard() {
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => {
         if (prev >= 95) return 95;
-        return prev + Math.max(0.2, (95 - prev) * 0.02);
+        return prev + Math.max(0.3, (95 - prev) * 0.03);
       });
-    }, 1500);
+    }, 1000);
 
     const formData = new FormData();
     formData.append('file', selectedFile);
