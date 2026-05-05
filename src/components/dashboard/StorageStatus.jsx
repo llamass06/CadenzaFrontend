@@ -2,8 +2,27 @@ import React from 'react';
 
 export default function StorageStatus({ obrasCount, maxObras = 6 }) {
     const limiteAlcanzado = obrasCount >= maxObras;
+    const casiLleno = obrasCount === maxObras - 1;
     const porcentajeUso = Math.min((obrasCount / maxObras) * 100, 100);
     const espacioEstimado = (obrasCount * 15.5).toFixed(1);
+
+    const getStatusColor = () => {
+        if (limiteAlcanzado) return 'text-red-500';
+        if (casiLleno) return 'text-amber-500';
+        return 'text-cadenza-text';
+    };
+
+    const getBgColor = () => {
+        if (limiteAlcanzado) return 'bg-red-500 shadow-[0_0_10px_#ef4444]';
+        if (casiLleno) return 'bg-amber-500 shadow-[0_0_10px_#f59e0b]';
+        return 'bg-cadenza-neon';
+    };
+
+    const getTagClass = () => {
+        if (limiteAlcanzado) return 'bg-red-500/10 text-red-500 border-red-500/20';
+        if (casiLleno) return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+        return 'bg-cadenza-neon/10 text-cadenza-neon border-cadenza-neon/20';
+    };
 
     return (
         <div className="cadenza-panel relative overflow-hidden">
@@ -14,7 +33,7 @@ export default function StorageStatus({ obrasCount, maxObras = 6 }) {
                     </svg>
                     Almacenamiento Cloud
                 </h3>
-                <span className={`${limiteAlcanzado ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-cadenza-neon/10 text-cadenza-neon border-cadenza-neon/20'} border px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-colors`}>
+                <span className={`${getTagClass()} border px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-colors`}>
                     Plan Free
                 </span>
             </div>
@@ -22,30 +41,35 @@ export default function StorageStatus({ obrasCount, maxObras = 6 }) {
             <div className="space-y-4">
                 <div>
                     <div className="flex justify-between items-end mb-2">
-                        <span className={`text-2xl font-black leading-none ${limiteAlcanzado ? 'text-red-500' : 'text-cadenza-text'}`}>
+                        <span className={`text-2xl font-black leading-none ${getStatusColor()}`}>
                             {obrasCount} <span className="text-xs text-slate-500 dark:text-cadenza-light font-bold">/ {maxObras} Obras</span>
                         </span>
-                        <span className={`text-[10px] font-bold tracking-widest ${limiteAlcanzado ? 'text-red-500 animate-pulse' : 'text-cadenza-neon'}`}>
+                        <span className={`text-[10px] font-bold tracking-widest ${getStatusColor()} ${limiteAlcanzado || casiLleno ? 'animate-pulse' : ''}`}>
                             {Math.round(porcentajeUso)}%
                         </span>
                     </div>
                     {/* Barra de progreso de almacenamiento */}
                     <div className="h-2.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <div
-                            className={`h-full rounded-full transition-all duration-1000 ease-out ${limiteAlcanzado ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-cadenza-neon'}`}
+                            className={`h-full rounded-full transition-all duration-1000 ease-out ${getBgColor()}`}
                             style={{ width: `${porcentajeUso}%` }}
                         ></div>
                     </div>
+                    {casiLleno && !limiteAlcanzado && (
+                        <p className="text-[9px] text-amber-500 font-bold uppercase tracking-widest mt-2 text-right animate-pulse">
+                            ¡Solo queda espacio para 1 obra más!
+                        </p>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-left pt-2">
                     <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-cadenza-border">
-                        <p className="text-[7px] text-slate-500 dark:text-cadenza-light font-black uppercase tracking-widest mb-1">Espacio Usado</p>
-                        <p className="text-[11px] text-cadenza-text font-bold">~ {espacioEstimado} MB</p>
+                        <p className="text-[8px] text-slate-500 dark:text-cadenza-light font-black uppercase tracking-widest mb-1">Espacio Usado</p>
+                        <p className="text-xs text-cadenza-text font-bold">~ {espacioEstimado} MB</p>
                     </div>
                     <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-cadenza-border">
-                        <p className="text-[7px] text-slate-500 dark:text-cadenza-light font-black uppercase tracking-widest mb-1">Ancho de Banda</p>
-                        <p className="text-[11px] text-cadenza-text font-bold text-green-500">Ilimitado</p>
+                        <p className="text-[8px] text-slate-500 dark:text-cadenza-light font-black uppercase tracking-widest mb-1">Obras Restantes</p>
+                        <p className={`text-xs font-bold ${limiteAlcanzado ? 'text-red-500' : casiLleno ? 'text-amber-500' : 'text-cadenza-text'}`}>{maxObras - obrasCount}</p>
                     </div>
                 </div>
             </div>

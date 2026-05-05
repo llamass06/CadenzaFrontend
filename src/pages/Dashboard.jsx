@@ -155,6 +155,7 @@ export default function Dashboard() {
   const MAX_OBRAS = 6; // Límite real bajado a 6 obras
   const totalObras = obrasRecientes.length;
   const limiteAlcanzado = totalObras >= MAX_OBRAS;
+  const casiLleno = totalObras === MAX_OBRAS - 1;
   const porcentajeUso = Math.min((totalObras / MAX_OBRAS) * 100, 100);
   const espacioEstimado = (totalObras * 15.5).toFixed(1); 
 
@@ -175,7 +176,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
 
         {/* Panel de Subida */}
-        <div className="lg:col-span-8 cadenza-panel relative overflow-hidden flex flex-col justify-center min-h-[500px]">
+        <div className="lg:col-span-8 cadenza-panel !pt-4 relative overflow-hidden flex flex-col justify-center min-h-[500px]">
           <div className="absolute top-0 right-0 w-64 h-64 bg-cadenza-neon opacity-5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
 
           <div className="relative z-10 space-y-8">
@@ -184,18 +185,22 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-black tracking-tight uppercase italic">Nueva Obra</h2>
                 <p className="text-slate-500 dark:text-cadenza-light text-sm font-medium">Sube audio para aislar el acompañamiento</p>
               </div>
-              {limiteAlcanzado && (
+              {limiteAlcanzado ? (
                 <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest animate-pulse">
                   Límite de plan alcanzado
                 </span>
-              )}
+              ) : casiLleno ? (
+                <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest animate-pulse">
+                  Casi lleno
+                </span>
+              ) : null}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
 
               {/* ZONA IZQUIERDA: Dropzone */}
               <div className="flex flex-col">
-                <label className={`flex flex-col items-center justify-center min-h-[280px] border-2 border-dashed rounded-2xl transition-all relative overflow-hidden group ${isUploading || limiteAlcanzado ? 'opacity-50 cursor-not-allowed border-cadenza-border bg-slate-50 dark:bg-black/10' : 'cursor-pointer border-cadenza-border bg-slate-50 dark:bg-black/20 hover:border-cadenza-neon hover:bg-cadenza-neon/5'}`}>
+                <label className={`flex flex-col items-center justify-center min-h-[280px] border-2 border-dashed rounded-2xl transition-all relative overflow-hidden group ${isUploading || limiteAlcanzado ? 'opacity-50 cursor-not-allowed border-cadenza-border bg-slate-50 dark:bg-black/10' : casiLleno ? 'cursor-pointer border-amber-500/50 bg-amber-500/5 hover:border-amber-500 hover:bg-amber-500/10' : 'cursor-pointer border-cadenza-border bg-slate-50 dark:bg-black/20 hover:border-cadenza-neon hover:bg-cadenza-neon/5'}`}>
                   {limiteAlcanzado ? (
                     <div className="flex flex-col items-center text-center space-y-4 p-6">
                       <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.1)]">
@@ -287,16 +292,22 @@ export default function Dashboard() {
             {/* BARRA DE CARGA / BOTÓN */}
             {isUploading ? (
               <div className="w-full bg-slate-50 dark:bg-black/30 border border-cadenza-border rounded-xl p-6 space-y-4">
+                <div className="flex items-center justify-center p-3 mb-2 bg-cadenza-warning-bg border border-cadenza-warning/30 rounded-lg animate-pulse">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-cadenza-warning mr-2 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  <span className="text-[10px] font-black text-cadenza-warning-text uppercase tracking-widest text-center">
+                    Por favor, no salgas de esta pantalla mientras separamos tu canción
+                  </span>
+                </div>
                 <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-widest text-cadenza-neon">
                   <span className="flex items-center space-x-3">
                     <svg className="animate-spin h-4 w-4 text-cadenza-neon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     Aislando Instrumentos...
                   </span>
-                  <span className="bg-cadenza-neon/10 px-2 py-0.5 rounded">{Math.round(uploadProgress)}%</span>
+                  <span className="bg-cadenza-progress-bg px-2 py-0.5 rounded text-cadenza-neon">{Math.round(uploadProgress)}%</span>
                 </div>
                 <div className="h-2.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                   <div className="h-full bg-cadenza-neon rounded-full transition-all duration-500 ease-out relative" style={{ width: `${uploadProgress}%` }}>
-                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                    <div className="absolute inset-0 bg-white/30 dark:bg-white/20 animate-pulse"></div>
                   </div>
                 </div>
               </div>
@@ -304,6 +315,8 @@ export default function Dashboard() {
               <button disabled className="w-full py-6 bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-cadenza-light rounded-xl font-black tracking-[0.2em] uppercase cursor-not-allowed">
                 LÍMITE ALCANZADO (6/6)
               </button>
+            ) : casiLleno ? (
+              <button onClick={handleUpload} disabled={!selectedFile} className="w-full py-6 rounded-xl font-black tracking-[0.2em] uppercase transition-all duration-300 border bg-amber-500/10 text-amber-500 border-amber-500 hover:bg-amber-500 hover:text-black hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] disabled:opacity-50 disabled:cursor-not-allowed">SEPARAR ÚLTIMA PISTA</button>
             ) : (
               <button onClick={handleUpload} disabled={!selectedFile} className="cadenza-btn-neon">SEPARAR PISTAS</button>
             )}

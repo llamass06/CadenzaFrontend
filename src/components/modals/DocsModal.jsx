@@ -74,12 +74,9 @@ export default function DocsModal({ onClose }) {
                     </div>
 
                     {/* Botón Descargar Manual */}
-                    <button className="group relative w-full flex items-center justify-center gap-4 py-4 rounded-xl bg-cadenza-card border border-cadenza-border hover:border-cadenza-neon/50 transition-all overflow-hidden" onClick={(e) => e.preventDefault()}>
+                    <button className="group relative w-full flex items-center justify-center py-4 rounded-xl bg-cadenza-card border border-cadenza-border hover:border-cadenza-neon/50 transition-all overflow-hidden" onClick={(e) => e.preventDefault()}>
                         <div className="absolute inset-0 bg-gradient-to-r from-cadenza-neon/0 via-cadenza-neon/5 to-cadenza-neon/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                        <div className="w-10 h-10 rounded-lg bg-cadenza-neon/10 border border-cadenza-neon/20 text-cadenza-neon flex items-center justify-center shadow-[0_0_10px_rgba(0,242,255,0.2)]">
-                            <span className="scale-125"><IconDownload /></span>
-                        </div>
-                        <div className="text-left flex-1">
+                        <div className="text-center relative z-10">
                             <span className="block text-xs font-black text-cadenza-text uppercase tracking-widest mb-0.5">Manual de Usuario</span>
                             <span className="block text-[9px] font-bold text-cadenza-light/40 uppercase tracking-wider">PDF · 2.4 MB · <span className="text-cadenza-neon/70">Próximamente</span></span>
                         </div>

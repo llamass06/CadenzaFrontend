@@ -159,10 +159,10 @@ export default function Estudio() {
                         </button>
                     )}
                     <div className="text-left">
-                        <h1 className="text-xl font-black italic tracking-tighter uppercase">
+                        <h1 className="text-2xl font-black italic tracking-tighter uppercase">
                             Estudio <span className="text-cadenza-neon">Virtual</span>
                         </h1>
-                        <p className="text-slate-500 dark:text-cadenza-light font-bold mt-0.5 uppercase tracking-[0.2em] text-[8px]">
+                        <p className="text-slate-500 dark:text-cadenza-light font-bold mt-0.5 uppercase tracking-[0.2em] text-xs">
                             {nombreDeLaObra}{' '}
                             {autorDeLaObra && <span className="text-cadenza-neon">| {autorDeLaObra}</span>}
                         </p>
