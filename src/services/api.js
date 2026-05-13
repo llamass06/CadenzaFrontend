@@ -6,7 +6,7 @@
  */
 
 /** URL base del backend. */
-const API_URL = "http://178.105.171.102:8000";
+const API_URL = "https://disparity-risotto-regretful.ngrok-free.dev";
 
 /**
  * getHeaders
