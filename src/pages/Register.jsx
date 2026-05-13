@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AuthLayout, { PasswordField } from '../components/AuthLayout';
-
+import API_URL from '../services/api';
 /**
  * Register
  *
@@ -70,7 +70,7 @@ export default function Register() {
         setIsLoading(true);
         try {
             // El registro usa JSON, no form-urlencoded (a diferencia del endpoint de login)
-            const response = await fetch('http://127.0.0.1:8000/api/auth/register', {
+            const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, username, password }),

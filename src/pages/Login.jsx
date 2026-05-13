@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AuthLayout, { PasswordField } from '../components/AuthLayout';
-
+import API_URL from '../services/api';
 /**
  * Login
  *
@@ -49,7 +49,7 @@ export default function Login() {
       formData.append('username', email); // El backend usa 'username' por convención OAuth2
       formData.append('password', password);
 
-      const response = await fetch('http://127.0.0.1:8000/api/auth/token', {
+      const response = await fetch(`${API_URL}/api/auth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData,
