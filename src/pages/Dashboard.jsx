@@ -156,8 +156,8 @@ export default function Dashboard() {
   const totalObras = obrasRecientes.length;
   const limiteAlcanzado = totalObras >= MAX_OBRAS;
   const casiLleno = totalObras === MAX_OBRAS - 1;
-  const porcentajeUso = Math.min((totalObras / MAX_OBRAS) * 100, 100);
-  const espacioEstimado = (totalObras * 15.5).toFixed(1); 
+  // const porcentajeUso = Math.min((totalObras / MAX_OBRAS) * 100, 100);
+  // const espacioEstimado = (totalObras * 15.5).toFixed(1); 
 
   return (
     <AppLayout
@@ -204,7 +204,7 @@ export default function Dashboard() {
                   {limiteAlcanzado ? (
                     <div className="flex flex-col items-center text-center space-y-4 p-6">
                       <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.1)]">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 text-red-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 text-red-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                       </div>
                       <div>
                         <p className="text-sm font-black text-red-500 mb-1 uppercase tracking-widest">Almacenamiento Lleno</p>
@@ -250,7 +250,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* BLOQUE DE REQUISITOS (Ahora Dinámico) */}
+                {/* BLOQUE DE REQUISITOS */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className={`p-3 border rounded-xl flex flex-col items-start transition-all duration-300 ${selectedFile ? 'bg-cadenza-neon/5 border-cadenza-neon/30' : 'bg-slate-50 dark:bg-white/5 border-cadenza-border'}`}>
                     <span className="text-[8px] font-black uppercase text-cadenza-light opacity-60 mb-1">
@@ -325,11 +325,11 @@ export default function Dashboard() {
 
         {/* Columna Derecha: Biblioteca */}
         <div className="lg:col-span-4 space-y-8">
-          <LibraryPanel 
-            obrasRecientes={obrasRecientes} 
-            cargandoObras={cargandoObras} 
-            onOpenObra={abrirEstudioDesdeHistorial} 
-            onDeleteObra={eliminarObra} 
+          <LibraryPanel
+            obrasRecientes={obrasRecientes}
+            cargandoObras={cargandoObras}
+            onOpenObra={abrirEstudioDesdeHistorial}
+            onDeleteObra={eliminarObra}
             limiteAlcanzado={limiteAlcanzado}
             casiLleno={casiLleno}
           />
