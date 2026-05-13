@@ -6,7 +6,7 @@
  */
 
 /** URL base del backend. */
-const API_URL = "https://disparity-risotto-regretful.ngrok-free.dev";
+export const API_URL = "https://disparity-risotto-regretful.ngrok-free.dev";
 
 /**
  * getHeaders
