@@ -330,6 +330,8 @@ export default function Dashboard() {
             cargandoObras={cargandoObras} 
             onOpenObra={abrirEstudioDesdeHistorial} 
             onDeleteObra={eliminarObra} 
+            limiteAlcanzado={limiteAlcanzado}
+            casiLleno={casiLleno}
           />
 
           <StorageStatus obrasCount={totalObras} maxObras={MAX_OBRAS} />

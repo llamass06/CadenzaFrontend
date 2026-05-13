@@ -1,9 +1,9 @@
 import React from 'react';
 
-export default function LibraryPanel({ obrasRecientes, cargandoObras, onOpenObra, onDeleteObra }) {
+export default function LibraryPanel({ obrasRecientes, cargandoObras, onOpenObra, onDeleteObra, limiteAlcanzado, casiLleno }) {
     return (
-        <div className="cadenza-panel">
-            <h2 className="cadenza-title">Biblioteca Reciente</h2>
+        <div className={`cadenza-panel relative overflow-hidden transition-all duration-500 ${limiteAlcanzado ? 'border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.15)]' : casiLleno ? 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.15)]' : ''}`}>
+            <h2 className={`cadenza-title transition-colors ${limiteAlcanzado ? 'text-red-500' : casiLleno ? 'text-amber-500' : ''}`}>Biblioteca Reciente</h2>
             <div className="space-y-4 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
                 {cargandoObras ? (
                     <div className="h-20 bg-slate-100 dark:bg-white/5 rounded-xl animate-pulse" />
