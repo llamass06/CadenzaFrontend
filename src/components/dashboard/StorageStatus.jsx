@@ -9,9 +9,9 @@ import React from 'react';
  * en todos sus sub-elementos.
  *
  * @param {number} obrasCount       - Número actual de obras guardadas por el usuario.
- * @param {number} [maxObras=6]     - Límite máximo de obras permitidas en el plan Free.
+ * @param {number} [maxObras=3]     - Límite máximo de obras permitidas en el plan Free.
  */
-export default function StorageStatus({ obrasCount, maxObras = 3 }) {
+export default function StorageStatus({ obrasCount, maxObras = 2 }) {
 
     // ── Estado derivado del almacenamiento ──────────────────────────────────
     const limiteAlcanzado = obrasCount >= maxObras;          // Storage al 100 %

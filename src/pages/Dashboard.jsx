@@ -152,7 +152,7 @@ export default function Dashboard() {
   const colorTextoInfo = selectedFile ? 'text-cadenza-neon' : 'text-cadenza-text';
 
   // --- RESTRICCIÓN DE USUARIO NORMAL ---
-  const MAX_OBRAS = 6; // Límite real bajado a 6 obras
+  const MAX_OBRAS = 3; // Límite real bajado a 3 obras
   const totalObras = obrasRecientes.length;
   const limiteAlcanzado = totalObras >= MAX_OBRAS;
   const casiLleno = totalObras === MAX_OBRAS - 1;
@@ -313,7 +313,7 @@ export default function Dashboard() {
               </div>
             ) : limiteAlcanzado ? (
               <button disabled className="w-full py-6 bg-red-50 dark:bg-red-500/10 text-red-500 border border-red-500/30 rounded-xl font-black tracking-[0.2em] uppercase cursor-not-allowed transition-colors">
-                LÍMITE ALCANZADO (6/6)
+                LÍMITE ALCANZADO ({MAX_OBRAS}/{MAX_OBRAS})
               </button>
             ) : casiLleno ? (
               <button onClick={handleUpload} disabled={!selectedFile} className="w-full py-6 rounded-xl font-black tracking-[0.2em] uppercase transition-all duration-300 border bg-amber-500/10 text-amber-500 border-amber-500 hover:bg-amber-500 hover:text-black hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] disabled:opacity-50 disabled:cursor-not-allowed">SEPARAR ÚLTIMA PISTA</button>
