@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AuthLayout, { PasswordField } from '../components/AuthLayout';
-import API_URL from '../services/api';
+import { API_URL } from '../services/api';
 /**
  * Register
  *
