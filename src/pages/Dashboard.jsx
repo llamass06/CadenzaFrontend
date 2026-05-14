@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as jsmediatags from 'jsmediatags';
 import AppLayout from '../components/AppLayout';
-import { fetchMisObras, separarPistas, eliminarObraApi, obtenerEstadoTarea } from '../services/api';
+import { fetchMisObras, separarPistas, eliminarObraApi } from '../services/api';
 import StorageStatus from '../components/dashboard/StorageStatus';
 import LibraryPanel from '../components/dashboard/LibraryPanel';
 
@@ -87,64 +87,20 @@ export default function Dashboard() {
 
     try {
       const data = await separarPistas(formData);
-      
-      if (data.status === 'queued') {
-        const taskId = data.task_id;
-        
-        const pollInterval = setInterval(async () => {
-          try {
-            const statusData = await obtenerEstadoTarea(taskId);
-            
-            if (statusData.status === 'success') {
-              clearInterval(pollInterval);
-              clearInterval(progressInterval);
-              setUploadProgress(100);
-              
-              setTimeout(() => {
-                navigate('/estudio', {
-                  state: {
-                    nombreObra: statusData.title || nombreParaIA,
-                    autorObra: statusData.artist || autorParaIA,
-                    backingUrl: statusData.backing_url,
-                    bpmDetectado: statusData.bpm,
-                    contextoIA: statusData.contexto
-                  },
-                });
-              }, 500);
-            } else if (statusData.status === 'error') {
-              clearInterval(pollInterval);
-              clearInterval(progressInterval);
-              setUploadProgress(0);
-              setErrorArchivo(`❌ Error: ${statusData.detail || 'Fallo al procesar'}`);
-              setIsUploading(false);
-            }
-            // If "esperando" or "procesando", do nothing and wait for next interval
-          } catch (e) {
-            clearInterval(pollInterval);
-            clearInterval(progressInterval);
-            setUploadProgress(0);
-            setErrorArchivo(`❌ Error al consultar el estado: ${e.message}`);
-            setIsUploading(false);
-          }
-        }, 3000);
-        
-      } else {
-        // Fallback for immediate response
-        clearInterval(progressInterval);
-        setUploadProgress(100);
+      clearInterval(progressInterval);
+      setUploadProgress(100);
 
-        setTimeout(() => {
-          navigate('/estudio', {
-            state: {
-              nombreObra: nombreParaIA,
-              autorObra: autorParaIA,
-              backingUrl: data.backing_url,
-              bpmDetectado: data.bpm,
-              contextoIA: data.contexto
-            },
-          });
-        }, 500);
-      }
+      setTimeout(() => {
+        navigate('/estudio', {
+          state: {
+            nombreObra: nombreParaIA,
+            autorObra: autorParaIA,
+            backingUrl: data.backing_url,
+            bpmDetectado: data.bpm,
+            contextoIA: data.contexto
+          },
+        });
+      }, 500);
 
     } catch (error) {
       clearInterval(progressInterval);
