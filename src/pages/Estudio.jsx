@@ -42,7 +42,7 @@ export default function Estudio() {
             }
         })
         .then(response => {
-            if (!response.ok) throw new Error("Error en descarga");
+            if (!response.ok) throw new Error(`Error en descarga: ${response.status} ${response.statusText}`);
             return response.blob();
         })
         .then(blob => {
