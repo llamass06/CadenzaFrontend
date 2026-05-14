@@ -57,6 +57,21 @@ export const separarPistas = async (formData) => {
 };
 
 /**
+ * obtenerEstadoTarea
+ * Endpoint: GET /api/v1/status/:taskId
+ */
+export const obtenerEstadoTarea = async (taskId) => {
+    const response = await fetch(`${API_URL}/api/v1/status/${taskId}`, {
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+        throw new Error("Error fetching task status");
+    }
+    return await response.json();
+};
+
+/**
  * eliminarObraApi
  * Endpoint: DELETE /api/v1/obras/:id
  */
