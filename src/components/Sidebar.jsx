@@ -263,6 +263,9 @@ export default function Sidebar({ isOpen, setIsOpen, isDark, setIsDark, showUser
 
     // Carga las obras del usuario al montar para poblar el submenú de Estudio Virtual
     useEffect(() => {
+        // No cargamos las obras si estamos en una página pública (login/registro)
+        if (!showUserMenu) return;
+
         const loadObras = async () => {
             try {
                 const data = await fetchMisObras();
@@ -272,7 +275,7 @@ export default function Sidebar({ isOpen, setIsOpen, isDark, setIsDark, showUser
             }
         };
         loadObras();
-    }, []);
+    }, [showUserMenu]);
 
     /**
      * handleLogout
