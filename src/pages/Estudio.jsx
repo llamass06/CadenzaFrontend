@@ -24,8 +24,41 @@ export default function Estudio() {
     // para evitar hacer una petición extra a la API.
     const nombreDeLaObra = location.state?.nombreObra || 'Obra desconocida';
     const autorDeLaObra = location.state?.autorObra || '';
-    const backingUrl = location.state?.backingUrl || null;
+    const rawBackingUrl = location.state?.backingUrl || null;
     const bpmDetectado = location.state?.bpmDetectado || 120;
+
+    const [backingBlobUrl, setBackingBlobUrl] = useState(null);
+    const [isLoadingAudio, setIsLoadingAudio] = useState(!!rawBackingUrl);
+
+    useEffect(() => {
+        if (!rawBackingUrl) return;
+        
+        let objectUrl = null;
+        setIsLoadingAudio(true);
+        
+        fetch(rawBackingUrl, {
+            headers: {
+                "ngrok-skip-browser-warning": "69420"
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Error en descarga");
+            return response.blob();
+        })
+        .then(blob => {
+            objectUrl = URL.createObjectURL(blob);
+            setBackingBlobUrl(objectUrl);
+            setIsLoadingAudio(false);
+        })
+        .catch(error => {
+            console.error("Error al descargar la pista de acompañamiento:", error);
+            setIsLoadingAudio(false);
+        });
+
+        return () => {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
+    }, [rawBackingUrl]);
     
     // Contexto musicológico generado por la IA durante el análisis previo.
     const contextoIA = location.state?.contextoIA || 'No hay información histórica disponible para esta obra.';
@@ -292,7 +325,7 @@ export default function Estudio() {
                         {/* Botón circular principal. Deshabilitado si no hay backing track */}
                         <button
                             onClick={handleMasterPlay}
-                            disabled={!backingUrl}
+                            disabled={!backingBlobUrl}
                             className="w-12 h-12 bg-cadenza-neon rounded-full text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all disabled:opacity-20 relative z-10"
                         >
                             {isMasterPlaying ? (
@@ -315,7 +348,7 @@ export default function Estudio() {
                         <h2 className="text-[10px] font-black mb-6 uppercase tracking-widest border-b border-cadenza-border pb-2 text-left text-slate-500 dark:text-cadenza-light">
                             Panel de Mezcla
                         </h2>
-                        {backingUrl ? (
+                        {rawBackingUrl ? (
                             <div className="space-y-4">
                                 
                                 {/* Pista 1: Acompañamiento (Backing Track) */}
@@ -325,9 +358,9 @@ export default function Estudio() {
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 text-cadenza-blue">
                                             <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
                                         </svg>
-                                        <span>Acompañamiento</span>
+                                        <span>Acompañamiento {isLoadingAudio ? '(Cargando...)' : ''}</span>
                                     </p>
-                                    <audio ref={backingRef} controls crossOrigin="anonymous" className="w-full h-8 outline-none" src={backingUrl} onPlay={handleAudioPlay} />
+                                    <audio ref={backingRef} controls crossOrigin="anonymous" className="w-full h-8 outline-none" src={backingBlobUrl || ""} onPlay={handleAudioPlay} />
                                 </div>
                                 
                                 {/* Pista 2: Grabación del Usuario */}
