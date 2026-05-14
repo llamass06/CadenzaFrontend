@@ -15,7 +15,8 @@ export const API_URL = "https://disparity-risotto-regretful.ngrok-free.dev";
 const getHeaders = () => {
     const token = localStorage.getItem('cadenza_token');
     return {
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "69420"
     };
 };
 
