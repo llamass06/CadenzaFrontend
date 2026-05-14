@@ -32,40 +32,40 @@ export default function Estudio() {
 
     useEffect(() => {
         if (!rawBackingUrl) return;
-        
+
         let objectUrl = null;
         setIsLoadingAudio(true);
-        
+
         fetch(rawBackingUrl, {
             headers: {
                 "ngrok-skip-browser-warning": "69420"
             }
         })
-        .then(response => {
-            if (!response.ok) throw new Error(`Error en descarga: ${response.status} ${response.statusText}`);
-            return response.blob();
-        })
-        .then(blob => {
-            objectUrl = URL.createObjectURL(blob);
-            setBackingBlobUrl(objectUrl);
-            setIsLoadingAudio(false);
-        })
-        .catch(error => {
-            console.error("Error al descargar la pista de acompañamiento:", error);
-            setIsLoadingAudio(false);
-        });
+            .then(response => {
+                if (!response.ok) throw new Error("Error en descarga");
+                return response.blob();
+            })
+            .then(blob => {
+                objectUrl = URL.createObjectURL(blob);
+                setBackingBlobUrl(objectUrl);
+                setIsLoadingAudio(false);
+            })
+            .catch(error => {
+                console.error("Error al descargar la pista de acompañamiento:", error);
+                setIsLoadingAudio(false);
+            });
 
         return () => {
             if (objectUrl) URL.revokeObjectURL(objectUrl);
         };
     }, [rawBackingUrl]);
-    
+
     // Contexto musicológico generado por la IA durante el análisis previo.
     const contextoIA = location.state?.contextoIA || 'No hay información histórica disponible para esta obra.';
 
     // Hook personalizado del metrónomo. Lo inicializamos con el BPM de la obra.
     const { bpm, setBpm, isPlaying: isMetronomePlaying, toggleMetronome, startMetronome, stopMetronome } = useMetronome(Math.round(bpmDetectado));
-    
+
     // ─── ESTADOS GLOBALES DE LA VISTA ─────────────────────────────────
     const [isRecording, setIsRecording] = useState(false);        // Estado del micrófono
     const [recordedUrl, setRecordedUrl] = useState(null);         // URL Blob de la grabación actual
@@ -97,7 +97,7 @@ export default function Estudio() {
         if (!audioCtxRef.current) {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtxRef.current = new AudioContext();
-            
+
             // Creamos el analizador. fftSize 256 nos da 128 "bins" de frecuencia (suficiente para 7 barras)
             analyserRef.current = audioCtxRef.current.createAnalyser();
             analyserRef.current.fftSize = 256;
@@ -116,10 +116,10 @@ export default function Estudio() {
      */
     const connectAudioElement = (element) => {
         if (!element || !audioCtxRef.current) return;
-        
+
         // Evitamos reconectar un nodo que ya está enrutado, porque lanzaría error
         if (sourcesConnected.current.has(element)) return;
-        
+
         try {
             const source = audioCtxRef.current.createMediaElementSource(element);
             source.connect(analyserRef.current);
@@ -145,16 +145,16 @@ export default function Estudio() {
             if (analyserRef.current && dataArrayRef.current) {
                 // Rellena el array con los datos de amplitud de las frecuencias en este frame
                 analyserRef.current.getByteFrequencyData(dataArrayRef.current);
-                
+
                 barsRef.current.forEach((bar, index) => {
                     if (bar) {
                         // Mapeamos nuestras 7 barras a lo largo del array de frecuencias (descartando los agudos extremos)
                         const dataIndex = Math.floor(index * (dataArrayRef.current.length / 10));
                         const value = dataArrayRef.current[dataIndex] || 0;
-                        
+
                         // Los agudos suelen tener menos amplitud, les damos un boost visual
                         const boost = 1 + (index * 0.25);
-                        
+
                         // Altura mínima 8% para que siempre se vea algo. Altura máxima 100%.
                         const heightPercent = Math.max(8, ((value * boost) / 255) * 100);
                         bar.style.height = `${Math.min(100, heightPercent)}%`;
@@ -166,23 +166,23 @@ export default function Estudio() {
         };
         // Inicia el bucle
         requestRef.current = requestAnimationFrame(drawVisualizer);
-        
+
         // Limpieza: cancela el bucle al desmontar el componente
         return () => cancelAnimationFrame(requestRef.current);
     }, []);
 
     // --- LÓGICA GRABACIÓN ---
-    
+
     /**
      * Inicia la captura de audio del micrófono.
      */
     const startRecording = async () => {
         try {
             await initWebAudio();
-            
+
             // Pide permisos y obtiene el stream del micrófono
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
+
             // Conecta el micro al analizador para que mueva las barras al hablar/tocar
             // IMPORTANTE: NO lo conectamos a destination para no crear acople/eco (feedback loop)
             const micSource = audioCtxRef.current.createMediaStreamSource(stream);
@@ -191,18 +191,18 @@ export default function Estudio() {
             // Prepara el grabador
             mediaRecorderRef.current = new MediaRecorder(stream);
             audioChunksRef.current = [];
-            
+
             // Va guardando los trozos de audio a medida que llegan
             mediaRecorderRef.current.ondataavailable = (e) => {
                 if (e.data.size > 0) audioChunksRef.current.push(e.data);
             };
-            
+
             // Cuando se detiene, junta los trozos en un archivo temporal (Blob) y crea una URL local
             mediaRecorderRef.current.onstop = () => {
                 const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
                 setRecordedUrl(URL.createObjectURL(blob));
             };
-            
+
             mediaRecorderRef.current.start();
             setIsRecording(true);
         } catch (error) {
@@ -231,7 +231,7 @@ export default function Estudio() {
      */
     const handleMasterPlay = async () => {
         await initWebAudio();
-        
+
         if (isMasterPlaying) {
             // Detener todo
             if (backingRef.current) backingRef.current.pause();
@@ -279,7 +279,7 @@ export default function Estudio() {
                             </svg>
                         </button>
                     )}
-                    
+
                     {/* Título y metadatos de la obra */}
                     <div className="text-left">
                         <h1 className="text-2xl font-black italic tracking-tighter uppercase">
@@ -290,7 +290,7 @@ export default function Estudio() {
                             {autorDeLaObra && <span className="text-cadenza-neon">| {autorDeLaObra}</span>}
                         </p>
                     </div>
-                    
+
                     {/* Botón Volver (navega al historial anterior) */}
                     <button
                         onClick={() => navigate(-1)}
@@ -310,7 +310,7 @@ export default function Estudio() {
               * y 4 columnas para la derecha (herramientas).
               */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                
+
                 {/* ── COLUMNA IZQUIERDA (Pistas y Contexto) ── */}
                 <div className="lg:col-span-8 space-y-8">
 
@@ -350,7 +350,7 @@ export default function Estudio() {
                         </h2>
                         {rawBackingUrl ? (
                             <div className="space-y-4">
-                                
+
                                 {/* Pista 1: Acompañamiento (Backing Track) */}
                                 <div className="bg-slate-50 dark:bg-black/10 p-5 rounded-xl border border-cadenza-border relative overflow-hidden">
                                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-cadenza-blue" />
@@ -362,7 +362,7 @@ export default function Estudio() {
                                     </p>
                                     <audio ref={backingRef} controls crossOrigin="anonymous" className="w-full h-8 outline-none" src={backingBlobUrl || ""} onPlay={handleAudioPlay} />
                                 </div>
-                                
+
                                 {/* Pista 2: Grabación del Usuario */}
                                 <div className="bg-slate-50 dark:bg-black/10 p-5 rounded-xl border border-cadenza-border relative overflow-hidden">
                                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-cadenza-neon" />
@@ -424,11 +424,10 @@ export default function Estudio() {
                         </h3>
                         <button
                             onClick={isRecording ? stopRecording : startRecording}
-                            className={`w-full py-3.5 rounded-xl font-black text-xs tracking-widest uppercase transition-all shadow-md flex items-center justify-center space-x-2.5 ${
-                                isRecording
+                            className={`w-full py-3.5 rounded-xl font-black text-xs tracking-widest uppercase transition-all shadow-md flex items-center justify-center space-x-2.5 ${isRecording
                                     ? 'bg-red-500 animate-pulse text-white' // Animación de pulso mientras graba
                                     : 'bg-cadenza-blue text-white'
-                            }`}
+                                }`}
                         >
                             {isRecording ? (
                                 <>
