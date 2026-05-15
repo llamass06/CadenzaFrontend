@@ -1,5 +1,6 @@
 import React from 'react';
-import { IconAuthor, IconClose } from '../icons';
+import { IconClose } from '../icons';
+import authorPhoto from '../../assets/yoAhora.jpeg';
 
 /**
  * AuthorModal
@@ -51,11 +52,13 @@ export default function AuthorModal({ onClose }) {
                         {/* Halo blur detrás del avatar — opacidad aumenta en group-hover */}
                         <div className="absolute inset-0 bg-cadenza-neon rounded-full blur-md opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
 
-                        {/* Círculo del avatar con gradiente interior y borde neón */}
-                        <div className="relative w-24 h-24 rounded-full bg-cadenza-bg border border-cadenza-neon/50 flex items-center justify-center shadow-inner overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-cadenza-neon/10 to-transparent"></div>
-                            {/* Icono de perfil escalado para ocupar el avatar */}
-                            <span className="text-4xl text-cadenza-neon relative z-10 scale-125"><IconAuthor /></span>
+                        {/* Círculo del avatar con borde neón — muestra la foto real del autor */}
+                        <div className="relative w-24 h-24 rounded-full border-2 border-cadenza-neon/60 shadow-[0_0_18px_rgba(var(--color-cadenza-neon),0.35)] overflow-hidden">
+                            <img
+                                src={authorPhoto}
+                                alt="Foto de Álvaro Llamas Martín"
+                                className="w-full h-full object-cover object-top"
+                            />
                         </div>
                     </div>
 
