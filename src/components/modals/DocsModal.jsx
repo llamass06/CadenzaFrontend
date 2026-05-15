@@ -9,12 +9,12 @@ import { IconDocs, IconClose, IconDownload } from '../icons';
  * overlay, el botón ×, o el botón "Entendido" del footer.
  *
  * Estructura:
- *  - Overlay oscuro con backdrop-blur.
- *  - Cabecera: icono de documento + título y subtítulo.
- *  - Sección scrollable:
- *      · Flujo "Cómo funciona" con 3 pasos conectados por una línea vertical.
- *      · Botón de descarga del Manual de Usuario (marcado como "Próximamente").
- *  - Footer con botón de cierre "Entendido".
+ * - Overlay oscuro con backdrop-blur.
+ * - Cabecera: icono de documento + título y subtítulo.
+ * - Sección scrollable:
+ * · Flujo "Cómo funciona" con 3 pasos conectados por una línea vertical.
+ * · Botón de descarga del Manual de Usuario (marcado como "Próximamente").
+ * - Footer con botón de cierre "Entendido".
  *
  * @param {Function} onClose - Callback que cierra el modal.
  */
@@ -32,7 +32,7 @@ export default function DocsModal({ onClose }) {
              * Panel del modal.
              * - max-w-lg para un ancho cómodo con contenido de texto.
              * - max-h-[90vh] + flex flex-col para que la zona de contenido sea scrollable
-             *   sin que la cabecera y el footer se desplacen.
+             * sin que la cabecera y el footer se desplacen.
              * - stopPropagation evita cerrar el modal al clicar dentro del panel.
              */}
             <div className="relative w-full max-w-lg bg-cadenza-card border border-cadenza-border rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] p-8 flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
@@ -80,10 +80,6 @@ export default function DocsModal({ onClose }) {
 
                             {/* ── Paso 1: Subida de Audio ── */}
                             <div className="flex items-start gap-4 relative z-10">
-                                {/*
-                                 * Badge del paso 1 — borde neón + fondo pulsante para destacar
-                                 * que es el punto de entrada del flujo.
-                                 */}
                                 <div className="w-12 h-12 rounded-xl bg-cadenza-card border border-cadenza-neon/50 flex flex-col items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(0,242,255,0.15)] relative">
                                     <div className="absolute inset-0 bg-cadenza-neon/10 rounded-xl animate-pulse"></div>
                                     <span className="text-[10px] font-black text-cadenza-neon uppercase relative z-10">Paso</span>
@@ -97,7 +93,6 @@ export default function DocsModal({ onClose }) {
 
                             {/* ── Paso 2: Procesamiento IA ── */}
                             <div className="flex items-start gap-4 relative z-10">
-                                {/* Badge del paso 2 — borde azul para distinguirlo del paso 1 */}
                                 <div className="w-12 h-12 rounded-xl bg-cadenza-card border border-cadenza-blue/50 flex flex-col items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
                                     <span className="text-[10px] font-black text-cadenza-blue uppercase">Paso</span>
                                     <span className="text-lg font-black text-cadenza-text leading-none">2</span>
@@ -110,7 +105,6 @@ export default function DocsModal({ onClose }) {
 
                             {/* ── Paso 3: Estudio Virtual ── */}
                             <div className="flex items-start gap-4 relative z-10">
-                                {/* Badge del paso 3 — estilo neutro para indicar el paso final */}
                                 <div className="w-12 h-12 rounded-xl bg-cadenza-card border border-cadenza-border flex flex-col items-center justify-center flex-shrink-0">
                                     <span className="text-[10px] font-black text-cadenza-light/50 uppercase">Paso</span>
                                     <span className="text-lg font-black text-cadenza-text leading-none">3</span>
@@ -124,19 +118,21 @@ export default function DocsModal({ onClose }) {
                     </div>
 
                     {/*
-                     * Botón "Manual de Usuario" — actualmente deshabilitado (Próximamente).
-                     * El onClick llama a e.preventDefault() para evitar cualquier acción.
-                     * Incluye un efecto de barrido de luz (shimmer) al hacer hover mediante
-                     * un gradiente que se desplaza de izquierda a derecha.
+                     * Enlace de descarga del Manual de Usuario.
+                     * Apunta a /Manual_Usuario_Cadenza.pdf en la carpeta public.
                      */}
-                    <button className="group relative w-full flex items-center justify-center py-4 rounded-xl bg-cadenza-card border border-cadenza-border hover:border-cadenza-neon/50 transition-all overflow-hidden" onClick={(e) => e.preventDefault()}>
+                    <a 
+                        href="/Manual_Usuario_Cadenza.pdf" 
+                        download="Manual_Usuario_Cadenza.pdf" 
+                        className="group relative w-full flex items-center justify-center py-4 rounded-xl bg-cadenza-card border border-cadenza-border hover:border-cadenza-neon/50 transition-all overflow-hidden"
+                    >
                         {/* Efecto shimmer: gradiente traslúcido animado en hover */}
                         <div className="absolute inset-0 bg-gradient-to-r from-cadenza-neon/0 via-cadenza-neon/5 to-cadenza-neon/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                         <div className="text-center relative z-10">
                             <span className="block text-xs font-black text-cadenza-text uppercase tracking-widest mb-0.5">Manual de Usuario</span>
-                            <span className="block text-[9px] font-bold text-cadenza-light/40 uppercase tracking-wider">PDF · 2.4 MB · <span className="text-cadenza-neon/70">Próximamente</span></span>
+                            <span className="block text-[9px] font-bold text-cadenza-light/60 uppercase tracking-wider">PDF · 2.4 MB · <span className="text-cadenza-neon/70">Descargar ahora</span></span>
                         </div>
-                    </button>
+                    </a>
                 </div>
 
                 {/* ── Footer: botón "Entendido" para cerrar el modal ── */}
