@@ -13,4 +13,9 @@ export default defineConfig({
       external: ['react-native-fs'],
     },
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './setupTests.js',
+  },
 })
