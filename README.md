@@ -39,24 +39,24 @@ Para ejecutar este proyecto en tu entorno local, asegúrate de tener instalado N
 1. Clonar el repositorio:
 Bash
 
-git clone https://github.com/llamass06/CadenzaFrontend.git
-cd CadenzaFrontend/cadenza-frontend
+        git clone https://github.com/llamass06/CadenzaFrontend.git
+        cd CadenzaFrontend/cadenza-frontend
 
 2. Instalar las dependencias:
 Bash
 
-npm install
+        npm install
 
 3. Configurar variables de entorno:
 Crea un archivo .env en la raíz del proyecto para definir la URL del backend local o de producción (Ngrok/Hetzner):
 Fragmento de código
 
-VITE_API_URL=http://127.0.0.1:8000
+        VITE_API_URL=http://127.0.0.1:8000
 
 4. Iniciar el servidor de desarrollo:
 Bash
 
-npm run dev
+        npm run dev
 
 5. Abrir en el navegador:
 Navega a http://localhost:5173 para ver la aplicación en funcionamiento.
