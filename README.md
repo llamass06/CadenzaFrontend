@@ -1,58 +1,65 @@
-# 🎹 Proyecto Cadenza - Frontend
+🎹 Proyecto Cadenza - Frontend
 
-Este repositorio contiene la interfaz de usuario (Frontend) para **Cadenza**, una aplicación web orientada a la deconstrucción orquestal mediante Inteligencia Artificial y la grabación interactiva. Desarrollado como Trabajo de Fin de Grado (TFG).
+Este repositorio contiene la interfaz de usuario (Frontend) para Cadenza, una aplicación web orientada a la deconstrucción orquestal mediante Inteligencia Artificial y la inmersión musical interactiva. Desarrollado como Trabajo de Fin de Grado (TFG) del ciclo superior de Desarrollo de Aplicaciones Multiplataforma (DAM).
+## 🚀 Estado del Proyecto
 
-## 🚀 Tecnologías Principales
+Actualmente, el frontend es plenamente funcional y está desplegado en producción. Se comunica de forma segura con el backend para procesar el audio, gestionar la biblioteca del usuario y renderizar el entorno del Estudio Virtual.
+## 🌟 Características Implementadas
 
-El proyecto ha sido construido utilizando las herramientas más modernas del ecosistema web para asegurar un rendimiento óptimo y un desarrollo ágil:
+    Dashboard Interactivo: Panel de control principal con sistema de subida de archivos Drag & Drop, extracción automática de metadatos de audio (etiquetas ID3 mediante jsmediatags) y validación de formatos (WAV, FLAC, MP3).
 
-* **[React](https://react.dev/) + [Vite](https://vitejs.dev/):** Utilizado como motor principal de la aplicación, ofreciendo tiempos de compilación casi instantáneos en comparación con Create React App.
-* **[Tailwind CSS v4](https://tailwindcss.com/):** Framework *utility-first* para el diseño visual, implementando un tema personalizado "Synthwave/Neon" oscuro sin necesidad de archivos de configuración externos pesados.
-* **[React Router Dom](https://reactrouter.com/):** Gestión de enrutamiento tipo SPA (Single Page Application) con protección de rutas privadas.
-* **Web Audio API & MediaRecorder (Próximamente):** Para la grabación del usuario y la reproducción sincronizada de la pista orquestal en el "Estudio Virtual".
+    Gestión de Biblioteca Cloud: Panel lateral y central para administrar las obras procesadas, incluyendo un sistema de control de cuotas en tiempo real (semáforo visual para el límite de 3 obras del plan gratuito).
 
-## 📂 Estructura del Proyecto
-```
-cadenza-frontend/
-├── public/               # Assets estáticos
-├── src/
-│   ├── pages/            # Pantallas completas de la aplicación
-│   │   ├── Login.jsx     # Interfaz de autenticación
-│   │   └── Dashboard.jsx # Estudio virtual y reproductor (Ruta protegida)
-│   ├── App.jsx           # Enrutador principal y Guards de seguridad
-│   ├── index.css         # Importación de Tailwind y variables CSS (Paleta Cadenza)
-│   └── main.jsx          # Punto de entrada de React
-├── vite.config.js        # Configuración del servidor y plugins
-└── package.json          # Dependencias y scripts
-```
+    Estudio Virtual (Virtual Studio): Reproductor de audio avanzado que permite al pianista escuchar la pista orquestal (sin piano), con visualización del BPM, control de metrónomo sincronizado y lectura del contexto histórico/técnico generado por IA (Google Gemini).
 
-## 🔐 Características Actuales
-Autenticación Segura: Conexión directa con el backend FastAPI. Los usuarios inician sesión enviando sus credenciales en formato x-www-form-urlencoded.
+    Progressive Web App (PWA): Soporte para instalación nativa de la aplicación en dispositivos móviles y de escritorio.
 
-Gestión de Sesión: Almacenamiento seguro del token JWT en el localStorage.
+    Autenticación y Seguridad: Conexión directa con la API RESTful. Gestión segura de sesión almacenando el token JWT en localStorage y protección estricta mediante Guards (ProtectedRoute) para evitar accesos no autorizados.
 
-Rutas Protegidas: Sistema de Guards que redirige automáticamente al Login si se intenta acceder al /dashboard sin un token válido.
+    Deduplicación de Peticiones: Arquitectura de red optimizada que intercepta promesas en vuelo para evitar llamadas duplicadas a la API y reducir la carga en el servidor.
 
-UI Responsiva: Diseño completamente adaptado a dispositivos móviles y escritorio.
+## 🛠️ Stack Tecnológico
 
+El proyecto ha sido construido utilizando las herramientas más modernas del ecosistema web para asegurar un rendimiento óptimo, escalabilidad y un desarrollo ágil:
 
-## 🛠️ Instalación y Uso en Desarrollo
+    Framework Web: React 18 + Vite (Tiempos de compilación instantáneos y Hot Module Replacement).
+
+    Estilos y UI: Tailwind CSS v4 (Framework utility-first implementando un tema personalizado oscuro y acentos "Cian Neón" sin archivos de configuración pesados).
+
+    Enrutamiento: React Router Dom (Gestión de SPA y rutas privadas).
+
+    Testing & QA: Jest + React Testing Library para validación de componentes condicionales y flujos de usuario.
+
+    Despliegue (CI/CD): Vercel (Alojamiento serverless rápido, optimizado y con despliegue continuo).
+      # Dependencias y scripts de ejecución
+
+## ⚙️ Instalación y Uso en Desarrollo
 
 Para ejecutar este proyecto en tu entorno local, asegúrate de tener instalado Node.js y sigue estos pasos:
 
-Clonar el repositorio:
+1. Clonar el repositorio:
+Bash
 
-    git clone [https://github.com/llamass06/CadenzaFrontend.git](https://github.com/llamass06/CadenzaFrontend.git)
-    cd CadenzaFrontend/cadenza-frontend
+git clone https://github.com/llamass06/CadenzaFrontend.git
+cd CadenzaFrontend/cadenza-frontend
 
-Instalar las dependencias:
+2. Instalar las dependencias:
+Bash
 
-    npm install
+npm install
 
-Iniciar el servidor de desarrollo:
+3. Configurar variables de entorno:
+Crea un archivo .env en la raíz del proyecto para definir la URL del backend local o de producción (Ngrok/Hetzner):
+Fragmento de código
 
-    npm run dev
+VITE_API_URL=http://127.0.0.1:8000
 
-Abrir en el navegador:
+4. Iniciar el servidor de desarrollo:
+Bash
 
-    Navega a http://localhost:5173 para ver la aplicación.
+npm run dev
+
+5. Abrir en el navegador:
+Navega a http://localhost:5173 para ver la aplicación en funcionamiento.
+
+Desarrollado por Álvaro Llamas Martín.
