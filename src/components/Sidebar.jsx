@@ -91,6 +91,7 @@ export default function Sidebar({ isOpen, setIsOpen, isDark, setIsDark, showUser
                                 onClick={() => navigate('/dashboard')}
                             />
 
+
                             <NavItem icon={<IconSettings />} label="Ajustes" disabled />
 
                             <NavItem icon={<IconEar />} label="Generador de Partituras" disabled />
