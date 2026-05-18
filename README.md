@@ -31,7 +31,6 @@ El proyecto ha sido construido utilizando las herramientas más modernas del eco
     Testing & QA: Jest + React Testing Library para validación de componentes condicionales y flujos de usuario.
 
     Despliegue (CI/CD): Vercel (Alojamiento serverless rápido, optimizado y con despliegue continuo).
-      # Dependencias y scripts de ejecución
 
 ## ⚙️ Instalación y Uso en Desarrollo
 
