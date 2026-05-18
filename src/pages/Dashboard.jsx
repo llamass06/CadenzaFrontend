@@ -5,6 +5,7 @@ import AppLayout from '../components/AppLayout';
 import { fetchMisObras, separarPistas, eliminarObraApi } from '../services/api';
 import StorageStatus from '../components/dashboard/StorageStatus';
 import LibraryPanel from '../components/dashboard/LibraryPanel';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -19,7 +20,16 @@ export default function Dashboard() {
   const [obrasRecientes, setObrasRecientes] = useState([]);
   const [cargandoObras, setCargandoObras] = useState(true);
 
+  const peticionRealizada = useRef(false);
+
   useEffect(() => {
+
+    // Si ya se hizo la petición, no volver a hacerla
+    if (peticionRealizada.current) return;
+
+    // Marcar como realizada inmediatamente
+    peticionRealizada.current = true;
+
     const loadObras = async () => {
       try {
         const data = await fetchMisObras();
