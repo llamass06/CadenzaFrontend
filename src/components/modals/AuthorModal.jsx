@@ -49,9 +49,6 @@ export default function AuthorModal({ onClose }) {
 
                     {/* Avatar con halo neón que se intensifica al hacer hover */}
                     <div className="relative mb-6 group">
-                        {/* Halo blur detrás del avatar — opacidad aumenta en group-hover */}
-                        <div className="absolute inset-0 bg-cadenza-neon rounded-full blur-md opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
-
                         {/* Círculo del avatar con borde neón — muestra la foto real del autor */}
                         <div className="relative w-24 h-24 rounded-full border-2 border-cadenza-neon/60 shadow-[0_0_18px_rgba(var(--color-cadenza-neon),0.35)] overflow-hidden">
                             <img
