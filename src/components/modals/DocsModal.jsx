@@ -130,7 +130,7 @@ export default function DocsModal({ onClose }) {
                         <div className="absolute inset-0 bg-gradient-to-r from-cadenza-neon/0 via-cadenza-neon/5 to-cadenza-neon/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                         <div className="text-center relative z-10">
                             <span className="block text-xs font-black text-cadenza-text uppercase tracking-widest mb-0.5">Manual de Usuario</span>
-                            <span className="block text-[9px] font-bold text-cadenza-light/60 uppercase tracking-wider">PDF · 2.4 MB · <span className="text-cadenza-neon/70">Descargar ahora</span></span>
+                            <span className="block text-[9px] font-bold text-cadenza-light/60 uppercase tracking-wider">PDF · 1 MB · <span className="text-cadenza-neon/70">Descargar ahora</span></span>
                         </div>
                     </a>
                 </div>
