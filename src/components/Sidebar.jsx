@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import { IconHome, IconPiano, IconEar, IconDocs, IconAuthor, IconSettings } from './icons';
+import { IconHome, IconPiano, IconEar, IconDocs, IconAuthor, IconSettings, IconMusicBot } from './icons';
 import AuthorModal from './modals/AuthorModal';
 import DocsModal from './modals/DocsModal';
 
 import { obtenerNombreDelToken } from '../utils/auth';
 import { usePWAInstall } from '../utils/usePWAInstall';
 
-import { SectionLabel }  from './sidebar/SectionLabel';
-import { NavItem }       from './sidebar/NavItem';
+import { SectionLabel } from './sidebar/SectionLabel';
+import { NavItem } from './sidebar/NavItem';
 import { SidebarHeader } from './sidebar/SidebarHeader';
-import { EnginePanel }   from './sidebar/EnginePanel';
-import { UserFooter }    from './sidebar/UserFooter';
+import { EnginePanel } from './sidebar/EnginePanel';
+import { UserFooter } from './sidebar/UserFooter';
 
 /**
  * Sidebar
@@ -95,6 +95,8 @@ export default function Sidebar({ isOpen, setIsOpen, isDark, setIsDark, showUser
                             <NavItem icon={<IconSettings />} label="Ajustes" disabled />
 
                             <NavItem icon={<IconEar />} label="Generador de Partituras" disabled />
+
+                            <NavItem icon={<IconMusicBot />} label="Coda ChatBot" disabled />
                         </div>
                     </div>
 
@@ -135,7 +137,7 @@ export default function Sidebar({ isOpen, setIsOpen, isDark, setIsDark, showUser
 
             {/* Modales montados fuera del aside para evitar conflictos de z-index */}
             {showAuthorModal && <AuthorModal onClose={() => setShowAuthorModal(false)} />}
-            {showDocsModal   && <DocsModal   onClose={() => setShowDocsModal(false)} />}
+            {showDocsModal && <DocsModal onClose={() => setShowDocsModal(false)} />}
         </>
     );
 }
