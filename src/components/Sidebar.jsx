@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import { IconHome, IconPiano, IconEar, IconDocs, IconAuthor, IconSettings, IconMusicBot } from './icons';
+import { IconHome, IconPiano, IconEar, IconDocs, IconAuthor, IconSettings, IconMusicBot, IconPlan } from './icons';
 import AuthorModal from './modals/AuthorModal';
 import DocsModal from './modals/DocsModal';
 
@@ -97,6 +97,8 @@ export default function Sidebar({ isOpen, setIsOpen, isDark, setIsDark, showUser
                             <NavItem icon={<IconEar />} label="Generador de Partituras" disabled />
 
                             <NavItem icon={<IconMusicBot />} label="Coda ChatBot" disabled />
+                            
+                            <NavItem icon={<IconPlan />} label="Mi Plan" disabled />
                         </div>
                     </div>
 

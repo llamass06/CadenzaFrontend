@@ -107,3 +107,14 @@ export const IconMusicBot = ({ className = "w-4 h-4" }) => (
         <circle cx="13" cy="9" r="1" fill="currentColor" stroke="none" />
     </svg>
 );
+
+/** Icono de plan / suscripción — usado para representar el plan de pago del usuario. */
+export const IconPlan = ({ className = "w-4 h-4" }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        {/* Círculo exterior */}
+        <circle cx="12" cy="12" r="9" />
+        {/* Símbolo de dólar */}
+        <path d="M12 6v12" />
+        <path d="M15 8.5a3 3 0 0 0-3-1.5 2.5 2.5 0 0 0 0 5 2.5 2.5 0 0 1 0 5 3 3 0 0 1-3-1.5" />
+    </svg>
+);
