@@ -91,13 +91,6 @@ export default function Sidebar({ isOpen, setIsOpen, isDark, setIsDark, showUser
                                 onClick={() => navigate('/dashboard')}
                             />
 
-                            <NavItem
-                                icon={<IconPiano />}
-                                label="Estudio Virtual"
-                                active={isActive('/estudio')}
-                                onClick={() => navigate('/estudio')}
-                            />
-
                             <NavItem icon={<IconSettings />} label="Ajustes" disabled />
 
                             <NavItem icon={<IconEar />} label="Generador de Partituras" disabled />
