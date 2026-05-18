@@ -24,7 +24,7 @@ El proyecto ha sido construido utilizando las herramientas más modernas del eco
 
     Framework Web: React 18 + Vite (Tiempos de compilación instantáneos y Hot Module Replacement).
 
-    Estilos y UI: Tailwind CSS v4 (Framework utility-first implementando un tema personalizado oscuro y acentos "Cian Neón" sin archivos de configuración pesados).
+    Estilos y UI: Tailwind CSS v4 (Framework utility-first implementando un tema personalizado oscuro y acentos "Cian Neón").
 
     Enrutamiento: React Router Dom (Gestión de SPA y rutas privadas).
 
