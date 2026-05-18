@@ -37,7 +37,7 @@ export default function Dashboard() {
     };
 
     loadObras();
-  }, [navigate]);
+  }, []);
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
