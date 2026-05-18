@@ -1,20 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import { IconHome, IconPiano, IconEar, IconDocs, IconAuthor } from './icons';
+import { IconHome, IconPiano, IconEar, IconDocs, IconAuthor, IconSettings } from './icons';
 import AuthorModal from './modals/AuthorModal';
 import DocsModal from './modals/DocsModal';
-import { fetchMisObras } from '../services/api';
 
 import { obtenerNombreDelToken } from '../utils/auth';
 import { usePWAInstall } from '../utils/usePWAInstall';
 
-import { SectionLabel }   from './sidebar/SectionLabel';
-import { NavItem }        from './sidebar/NavItem';
-import { SidebarHeader }  from './sidebar/SidebarHeader';
-import { EstudioSubmenu } from './sidebar/EstudioSubmenu';
-import { EnginePanel }    from './sidebar/EnginePanel';
-import { UserFooter }     from './sidebar/UserFooter';
+import { SectionLabel }  from './sidebar/SectionLabel';
+import { NavItem }       from './sidebar/NavItem';
+import { SidebarHeader } from './sidebar/SidebarHeader';
+import { EnginePanel }   from './sidebar/EnginePanel';
+import { UserFooter }    from './sidebar/UserFooter';
 
 /**
  * Sidebar
@@ -25,7 +23,7 @@ import { UserFooter }     from './sidebar/UserFooter';
  *
  * Secciones:
  *  1. Cabecera        — Logo + título + botón de cierre.
- *  2. Menú principal  — Dashboard, Estudio Virtual (submenú de obras), Generador.
+ *  2. Menú principal  — Dashboard, Estudio Virtual, Ajustes (deshabilitado), Generador.
  *  3. Engine          — Estado del modelo IA + toggle de modo oscuro.
  *  4. Soporte         — Documentación y Sobre el Autor (abren modales).
  *  5. Footer de usuario — Avatar, botón PWA y cerrar sesión (solo si showUserMenu=true).
@@ -41,40 +39,12 @@ export default function Sidebar({ isOpen, setIsOpen, isDark, setIsDark, showUser
     const location = useLocation();
 
     const [nombreUsuario] = useState(obtenerNombreDelToken);
-    const [obras, setObras] = useState([]);
-    const [isEstudioMenuOpen, setIsEstudioMenuOpen] = useState(false);
     const [showAuthorModal, setShowAuthorModal] = useState(false);
     const [showDocsModal, setShowDocsModal] = useState(false);
 
     const { isInstallable, handleInstallClick } = usePWAInstall();
 
-    // Carga las obras del usuario para el submenú de Estudio Virtual
-    useEffect(() => {
-        if (!showUserMenu) return;
-        fetchMisObras()
-            .then(setObras)
-            .catch((err) => console.error('Error cargando obras en sidebar:', err));
-    }, [showUserMenu]);
-
     const isActive = (path) => location.pathname === path;
-
-    /**
-     * abrirObra
-     * Navega al Estudio Virtual con los metadatos de la obra por `state`
-     * (sin exponerlos en la URL) y cierra la Sidebar.
-     */
-    const abrirObra = (obra) => {
-        navigate('/estudio', {
-            state: {
-                nombreObra:  obra.title,
-                autorObra:   obra.artist,
-                backingUrl:  obra.backing_url,
-                bpmDetectado: obra.bpm,
-                contextoIA:  obra.contexto,
-            },
-        });
-        setIsOpen(false);
-    };
 
     const handleLogout = () => {
         localStorage.removeItem('cadenza_token');
@@ -121,20 +91,14 @@ export default function Sidebar({ isOpen, setIsOpen, isDark, setIsDark, showUser
                                 onClick={() => navigate('/dashboard')}
                             />
 
-                            {/* Estudio Virtual + submenú de obras */}
-                            <div className="space-y-1">
-                                <NavItem
-                                    icon={<IconPiano />}
-                                    label="Estudio Virtual"
-                                    active={isActive('/estudio')}
-                                    hasDropdown
-                                    isOpen={isEstudioMenuOpen}
-                                    onClick={() => setIsEstudioMenuOpen((prev) => !prev)}
-                                />
-                                {isEstudioMenuOpen && (
-                                    <EstudioSubmenu obras={obras} onSelect={abrirObra} />
-                                )}
-                            </div>
+                            <NavItem
+                                icon={<IconPiano />}
+                                label="Estudio Virtual"
+                                active={isActive('/estudio')}
+                                onClick={() => navigate('/estudio')}
+                            />
+
+                            <NavItem icon={<IconSettings />} label="Ajustes" disabled />
 
                             <NavItem icon={<IconEar />} label="Generador de Partituras" disabled />
                         </div>
