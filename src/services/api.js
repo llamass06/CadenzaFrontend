@@ -25,6 +25,7 @@ const getHeaders = () => {
  * Endpoint: GET /api/v1/mis-obras
  */
 export const fetchMisObras = async () => {
+    console.log("YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAI");
     const response = await fetch(`${API_URL}/api/v1/mis-obras`, {
         headers: getHeaders(),
     });
