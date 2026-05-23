@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as jsmediatags from 'jsmediatags';
 import AppLayout from '../components/AppLayout';
@@ -24,24 +24,6 @@ export default function Dashboard() {
   const [cargandoObras, setCargandoObras] = useState(true);
 
   const peticionRealizada = useRef(false);
-
-  // Refs para controlar intervalos y abort del fetch de subida
-  const progressIntervalRef = useRef(null);
-  const pollingIntervalRef  = useRef(null);
-  const abortControllerRef  = useRef(null);
-  // Flag para no llamar a setState si el componente ya se desmontó
-  const isMountedRef = useRef(true);
-
-  // Limpieza al desmontar
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-      clearInterval(progressIntervalRef.current);
-      clearInterval(pollingIntervalRef.current);
-      if (abortControllerRef.current) abortControllerRef.current.abort();
-    };
-  }, []);
 
   useEffect(() => {
 
@@ -101,14 +83,6 @@ export default function Dashboard() {
       return;
     }
 
-    // Cancelar cualquier operación previa que pueda estar pendiente
-    if (abortControllerRef.current) abortControllerRef.current.abort();
-    clearInterval(progressIntervalRef.current);
-    clearInterval(pollingIntervalRef.current);
-
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
     setIsUploading(true);
     setUploadProgress(0);
     setServidoresSaturados(false);
@@ -119,7 +93,6 @@ export default function Dashboard() {
     // Es importante hacerlo ANTES de enviar el archivo para que el flag sea fiable.
     try {
       const estadoInicial = await fetchEstadoCola();
-      if (!isMountedRef.current) return;
       if (estadoInicial.tareas_activas >= 1) {
         enColaRef.current = true;
         setEnCola(true);
@@ -130,8 +103,7 @@ export default function Dashboard() {
 
     // El progressInterval avanza solo cuando este usuario está siendo procesado (no en cola).
     // Comprueba enColaRef.current en cada tick para pausar/reanudar automáticamente.
-    progressIntervalRef.current = setInterval(() => {
-      if (!isMountedRef.current) { clearInterval(progressIntervalRef.current); return; }
+    const progressInterval = setInterval(() => {
       if (enColaRef.current) return; // pausado mientras esperamos turno
       setUploadProgress((prev) => {
         if (prev >= 95) return 95;
@@ -139,12 +111,11 @@ export default function Dashboard() {
       });
     }, 1000);
 
-    // Polling: consulta el estado de la cola cada 10 segundos.
+    // Polling: consulta el estado de la cola cada 4 segundos.
     // Solo actualiza la alerta si este usuario está realmente en cola (enColaRef).
-    pollingIntervalRef.current = setInterval(async () => {
+    const pollingInterval = setInterval(async () => {
       try {
         const estado = await fetchEstadoCola();
-        if (!isMountedRef.current) { clearInterval(pollingIntervalRef.current); return; }
         if (enColaRef.current) {
           setServidoresSaturados(estado.saturado);
           // Si el servidor ya no está saturado, es nuestro turno: salimos de la cola
@@ -164,16 +135,11 @@ export default function Dashboard() {
     formData.append('artist', autorParaIA || '');
 
     try {
-      const data = await separarPistas(formData, abortController.signal);
-
-      clearInterval(progressIntervalRef.current);
-
-      if (!isMountedRef.current) return;
-
+      const data = await separarPistas(formData);
+      clearInterval(progressInterval);
       setUploadProgress(100);
 
       setTimeout(() => {
-        if (!isMountedRef.current) return;
         navigate('/estudio', {
           state: {
             nombreObra: nombreParaIA,
@@ -186,17 +152,13 @@ export default function Dashboard() {
       }, 500);
 
     } catch (error) {
-      clearInterval(progressIntervalRef.current);
-      // Si el error se debe a que el usuario navegó fuera (abort), no mostrar error
-      if (error.name === 'AbortError') return;
-      if (!isMountedRef.current) return;
+      clearInterval(progressInterval);
       setUploadProgress(0);
       setErrorArchivo(`❌ Error: ${error.message}`);
       setIsUploading(false);
     } finally {
       // Limpiamos siempre el polling y los estados al terminar (tanto por éxito como por error)
-      clearInterval(pollingIntervalRef.current);
-      if (!isMountedRef.current) return;
+      clearInterval(pollingInterval);
       setServidoresSaturados(false);
       setEnCola(false);
       enColaRef.current = false;
