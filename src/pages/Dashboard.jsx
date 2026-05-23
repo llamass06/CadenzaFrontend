@@ -14,6 +14,9 @@ export default function Dashboard() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorArchivo, setErrorArchivo] = useState('');
   const [servidoresSaturados, setServidoresSaturados] = useState(false);
+  const [enCola, setEnCola] = useState(false);
+  // Ref para leer el estado de cola dentro de los closures de setInterval sin stale state
+  const enColaRef = useRef(false);
   const [nombreParaIA, setNombreParaIA] = useState('');
   const [autorParaIA, setAutorParaIA] = useState('');
 
@@ -83,19 +86,44 @@ export default function Dashboard() {
     setIsUploading(true);
     setUploadProgress(0);
     setServidoresSaturados(false);
+    setEnCola(false);
+    enColaRef.current = false;
 
+    // Pre-comprobación: si ya hay tareas activas en el servidor, este usuario va a esperar en cola.
+    // Es importante hacerlo ANTES de enviar el archivo para que el flag sea fiable.
+    try {
+      const estadoInicial = await fetchEstadoCola();
+      if (estadoInicial.tareas_activas >= 1) {
+        enColaRef.current = true;
+        setEnCola(true);
+      }
+    } catch {
+      // Si falla la pre-comprobación, continuamos sin mostrar el aviso (no es crítico)
+    }
+
+    // El progressInterval avanza solo cuando este usuario está siendo procesado (no en cola).
+    // Comprueba enColaRef.current en cada tick para pausar/reanudar automáticamente.
     const progressInterval = setInterval(() => {
+      if (enColaRef.current) return; // pausado mientras esperamos turno
       setUploadProgress((prev) => {
         if (prev >= 95) return 95;
         return prev + Math.max(0.3, (95 - prev) * 0.03);
       });
     }, 1000);
 
-    // Polling: consulta el estado de la cola cada 4 segundos para detectar saturación
+    // Polling: consulta el estado de la cola cada 4 segundos.
+    // Solo actualiza la alerta si este usuario está realmente en cola (enColaRef).
     const pollingInterval = setInterval(async () => {
       try {
         const estado = await fetchEstadoCola();
-        setServidoresSaturados(estado.saturado);
+        if (enColaRef.current) {
+          setServidoresSaturados(estado.saturado);
+          // Si el servidor ya no está saturado, es nuestro turno: salimos de la cola
+          if (!estado.saturado) {
+            enColaRef.current = false;
+            setEnCola(false);
+          }
+        }
       } catch {
         // Si falla el polling, simplemente no se muestra el aviso; no es crítico
       }
@@ -129,9 +157,11 @@ export default function Dashboard() {
       setErrorArchivo(`❌ Error: ${error.message}`);
       setIsUploading(false);
     } finally {
-      // Limpiamos siempre el polling al terminar (tanto por éxito como por error)
+      // Limpiamos siempre el polling y los estados al terminar (tanto por éxito como por error)
       clearInterval(pollingInterval);
       setServidoresSaturados(false);
+      setEnCola(false);
+      enColaRef.current = false;
     }
   };
 
@@ -318,9 +348,9 @@ export default function Dashboard() {
             {isUploading ? (
               <div className="w-full bg-slate-50 dark:bg-black/30 border border-cadenza-border rounded-xl p-6 space-y-4">
 
-                {/* AVISO DE SATURACIÓN: se muestra cuando hay más usuarios esperando en cola */}
-                {servidoresSaturados && (
-                  <div className="flex items-start p-4 bg-red-500/10 border border-red-500/30 rounded-xl animate-pulse">
+                {/* AVISO DE SATURACIÓN: solo visible para el usuario que está esperando en cola */}
+                {enCola && servidoresSaturados && (
+                  <div className="flex items-start p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 text-red-400 mr-3 flex-shrink-0 mt-0.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
                     </svg>
@@ -339,18 +369,40 @@ export default function Dashboard() {
                     Por favor, no salgas de esta pantalla mientras separamos tu canción
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-widest text-cadenza-neon">
-                  <span className="flex items-center space-x-3">
-                    <svg className="animate-spin h-4 w-4 text-cadenza-neon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Aislando Instrumentos...
-                  </span>
-                  <span className="bg-cadenza-progress-bg px-2 py-0.5 rounded text-cadenza-neon">{Math.round(uploadProgress)}%</span>
-                </div>
-                <div className="h-2.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-cadenza-neon rounded-full transition-all duration-500 ease-out relative" style={{ width: `${uploadProgress}%` }}>
-                    <div className="absolute inset-0 bg-white/30 dark:bg-white/20 animate-pulse"></div>
+
+                {/* UI DIFERENCIADA: cola de espera vs procesamiento activo */}
+                {enCola ? (
+                  <div className="flex flex-col items-center justify-center space-y-3 py-2">
+                    <div className="flex items-center space-x-3 text-[11px] font-black uppercase tracking-widest text-amber-400">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 animate-spin">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
+                        <circle cx="12" cy="12" r="10" />
+                      </svg>
+                      <span>En cola de espera...</span>
+                    </div>
+                    <div className="h-2.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full w-full bg-amber-400/40 rounded-full relative overflow-hidden">
+                        <div className="absolute inset-0 bg-amber-400/60 animate-[pulse_1.5s_ease-in-out_infinite]"
+                          style={{ animation: 'slide 2s linear infinite', background: 'linear-gradient(90deg, transparent 0%, rgba(251,191,36,0.6) 50%, transparent 100%)', backgroundSize: '200% 100%' }} />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-widest text-cadenza-neon">
+                      <span className="flex items-center space-x-3">
+                        <svg className="animate-spin h-4 w-4 text-cadenza-neon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        Aislando Instrumentos...
+                      </span>
+                      <span className="bg-cadenza-progress-bg px-2 py-0.5 rounded text-cadenza-neon">{Math.round(uploadProgress)}%</span>
+                    </div>
+                    <div className="h-2.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-cadenza-neon rounded-full transition-all duration-500 ease-out relative" style={{ width: `${uploadProgress}%` }}>
+                        <div className="absolute inset-0 bg-white/30 dark:bg-white/20 animate-pulse"></div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             ) : limiteAlcanzado ? (
               <button disabled className="w-full py-6 bg-red-50 dark:bg-red-500/10 text-red-500 border border-red-500/30 rounded-xl font-black tracking-[0.2em] uppercase cursor-not-allowed transition-colors">
