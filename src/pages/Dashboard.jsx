@@ -127,7 +127,7 @@ export default function Dashboard() {
       } catch {
         // Si falla el polling, simplemente no se muestra el aviso; no es crítico
       }
-    }, 4000);
+    }, 10000);
 
     const formData = new FormData();
     formData.append('file', selectedFile);
