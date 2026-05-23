@@ -91,3 +91,17 @@ export const getObraContexto = async (nombreObra) => {
     if (!response.ok) throw new Error("Error al obtener el contexto de la IA");
     return await response.json();
 };
+
+/**
+ * fetchEstadoCola
+ * Endpoint: GET /api/v1/cola-estado
+ * Consulta cuántas tareas están activas y si el servidor está saturado.
+ * Usado por el polling del Dashboard para mostrar el aviso de saturación.
+ */
+export const fetchEstadoCola = async () => {
+    const response = await fetch(`${API_URL}/api/v1/cola-estado`, {
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Error al consultar estado de la cola");
+    return await response.json();
+};

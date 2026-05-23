@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as jsmediatags from 'jsmediatags';
 import AppLayout from '../components/AppLayout';
-import { fetchMisObras, separarPistas, eliminarObraApi } from '../services/api';
+import { fetchMisObras, separarPistas, eliminarObraApi, fetchEstadoCola } from '../services/api';
 import StorageStatus from '../components/dashboard/StorageStatus';
 import LibraryPanel from '../components/dashboard/LibraryPanel';
 
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorArchivo, setErrorArchivo] = useState('');
+  const [servidoresSaturados, setServidoresSaturados] = useState(false);
   const [nombreParaIA, setNombreParaIA] = useState('');
   const [autorParaIA, setAutorParaIA] = useState('');
 
@@ -81,6 +82,7 @@ export default function Dashboard() {
 
     setIsUploading(true);
     setUploadProgress(0);
+    setServidoresSaturados(false);
 
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => {
@@ -88,6 +90,16 @@ export default function Dashboard() {
         return prev + Math.max(0.3, (95 - prev) * 0.03);
       });
     }, 1000);
+
+    // Polling: consulta el estado de la cola cada 4 segundos para detectar saturación
+    const pollingInterval = setInterval(async () => {
+      try {
+        const estado = await fetchEstadoCola();
+        setServidoresSaturados(estado.saturado);
+      } catch {
+        // Si falla el polling, simplemente no se muestra el aviso; no es crítico
+      }
+    }, 4000);
 
     const formData = new FormData();
     formData.append('file', selectedFile);
@@ -116,6 +128,10 @@ export default function Dashboard() {
       setUploadProgress(0);
       setErrorArchivo(`❌ Error: ${error.message}`);
       setIsUploading(false);
+    } finally {
+      // Limpiamos siempre el polling al terminar (tanto por éxito como por error)
+      clearInterval(pollingInterval);
+      setServidoresSaturados(false);
     }
   };
 
@@ -301,6 +317,22 @@ export default function Dashboard() {
             {/* BARRA DE CARGA / BOTÓN */}
             {isUploading ? (
               <div className="w-full bg-slate-50 dark:bg-black/30 border border-cadenza-border rounded-xl p-6 space-y-4">
+
+                {/* AVISO DE SATURACIÓN: se muestra cuando hay más usuarios esperando en cola */}
+                {servidoresSaturados && (
+                  <div className="flex items-start p-4 bg-red-500/10 border border-red-500/30 rounded-xl animate-pulse">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 text-red-400 mr-3 flex-shrink-0 mt-0.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
+                    </svg>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-widest text-red-400 mb-1">Servidores saturados</p>
+                      <p className="text-[10px] text-red-300/80 font-medium leading-relaxed">
+                        Tu solicitud ha sido recibida y será atendida en breves. Por favor, mantén la ventana abierta.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-center p-3 mb-2 bg-cadenza-warning-bg border border-cadenza-warning/30 rounded-lg animate-pulse">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-cadenza-warning mr-2 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                   <span className="text-[10px] font-black text-cadenza-warning-text uppercase tracking-widest text-center">
