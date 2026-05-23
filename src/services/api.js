@@ -44,11 +44,12 @@ export const fetchMisObras = async () => {
  * separarPistas
  * Endpoint: POST /api/v1/separar
  */
-export const separarPistas = async (formData) => {
+export const separarPistas = async (formData, signal = undefined) => {
     const response = await fetch(`${API_URL}/api/v1/separar`, {
         method: 'POST',
         headers: getHeaders(),
         body: formData,
+        signal,
     });
 
     if (!response.ok) {
