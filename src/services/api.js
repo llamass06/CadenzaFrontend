@@ -105,21 +105,3 @@ export const fetchEstadoCola = async () => {
     if (!response.ok) throw new Error("Error al consultar estado de la cola");
     return await response.json();
 };
-
-/**
- * fetchEstadoTarea
- * Endpoint: GET /api/v1/separar/status/{taskId}
- * Consulta el estado actual de una tarea de separación de pistas en curso.
- * El frontend llama a esta función cada pocos segundos (polling) para saber
- * cuándo ha terminado Demucs y obtener los datos finales (backing_url, bpm, contexto).
- *
- * @param {string} taskId - UUID de la tarea devuelto por POST /api/v1/separar.
- * @returns {Promise<{status: string, result?: object, error?: string}>}
- */
-export const fetchEstadoTarea = async (taskId) => {
-    const response = await fetch(`${API_URL}/api/v1/separar/status/${taskId}`, {
-        headers: getHeaders(),
-    });
-    if (!response.ok) throw new Error("Error al consultar el estado de la tarea");
-    return await response.json();
-};
