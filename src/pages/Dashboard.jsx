@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as jsmediatags from 'jsmediatags';
 import AppLayout from '../components/AppLayout';
-import { fetchMisObras, separarPistas, eliminarObraApi, fetchEstadoCola } from '../services/api';
+import { fetchMisObras, separarPistas, eliminarObraApi, fetchEstadoCola, fetchEstadoTarea } from '../services/api';
 import StorageStatus from '../components/dashboard/StorageStatus';
 import LibraryPanel from '../components/dashboard/LibraryPanel';
 
@@ -103,17 +103,18 @@ export default function Dashboard() {
 
     // El progressInterval avanza solo cuando este usuario está siendo procesado (no en cola).
     // Comprueba enColaRef.current en cada tick para pausar/reanudar automáticamente.
+    // Usa una curva asintótica: avanza rápido al principio y se frena cerca del 95%.
     const progressInterval = setInterval(() => {
-      if (enColaRef.current) return; // pausado mientras esperamos turno
+      if (enColaRef.current) return; // pausado mientras esperamos turno en la cola
       setUploadProgress((prev) => {
-        if (prev >= 95) return 95;
+        if (prev >= 95) return 95; // Se congela en 95% hasta que el servidor confirme el éxito
         return prev + Math.max(0.3, (95 - prev) * 0.03);
       });
     }, 1000);
 
-    // Polling: consulta el estado de la cola cada 4 segundos.
+    // Polling de saturación: consulta el estado de la cola cada 10 segundos.
     // Solo actualiza la alerta si este usuario está realmente en cola (enColaRef).
-    const pollingInterval = setInterval(async () => {
+    const colaPollingInterval = setInterval(async () => {
       try {
         const estado = await fetchEstadoCola();
         if (enColaRef.current) {
@@ -125,7 +126,7 @@ export default function Dashboard() {
           }
         }
       } catch {
-        // Si falla el polling, simplemente no se muestra el aviso; no es crítico
+        // Si falla el polling de cola, simplemente no se muestra el aviso; no es crítico
       }
     }, 10000);
 
@@ -135,30 +136,68 @@ export default function Dashboard() {
     formData.append('artist', autorParaIA || '');
 
     try {
-      const data = await separarPistas(formData);
-      clearInterval(progressInterval);
-      setUploadProgress(100);
+      // ── PASO 1: Subir el archivo ──────────────────────────────────────────
+      // El backend ahora responde INMEDIATAMENTE con un task_id.
+      // El archivo ya se guardó en el servidor, pero Demucs aún no ha terminado.
+      // El usuario sigue viendo la barra de progreso en este mismo Dashboard.
+      const respuesta = await separarPistas(formData);
+      const taskId = respuesta.task_id;
 
-      setTimeout(() => {
-        navigate('/estudio', {
-          state: {
-            nombreObra: nombreParaIA,
-            autorObra: autorParaIA,
-            backingUrl: data.backing_url,
-            bpmDetectado: data.bpm,
-            contextoIA: data.contexto
-          },
-        });
-      }, 500);
+      // ── PASO 2: Polling de estado de la tarea ────────────────────────────
+      // Cada 5 segundos preguntamos: "¿Ha terminado Demucs?"
+      // Mientras tanto, la barra de progreso sigue avanzando en el Dashboard.
+      // SOLO cuando el servidor responde 'success' navegamos al Estudio.
+      const taskPollingInterval = setInterval(async () => {
+        try {
+          const tarea = await fetchEstadoTarea(taskId);
+
+          if (tarea.status === 'success') {
+            // ✅ ¡Demucs terminó! Limpiamos todo y navegamos al Estudio con los datos.
+            clearInterval(taskPollingInterval);
+            clearInterval(progressInterval);
+            clearInterval(colaPollingInterval);
+            setUploadProgress(100);
+
+            const data = tarea.result;
+            setTimeout(() => {
+              navigate('/estudio', {
+                state: {
+                  nombreObra: nombreParaIA,
+                  autorObra: autorParaIA,
+                  backingUrl: data.backing_url,
+                  bpmDetectado: data.bpm,
+                  contextoIA: data.contexto,
+                },
+              });
+            }, 500);
+
+          } else if (tarea.status === 'error') {
+            // ❌ El procesamiento falló en el servidor
+            clearInterval(taskPollingInterval);
+            clearInterval(progressInterval);
+            clearInterval(colaPollingInterval);
+            setUploadProgress(0);
+            setErrorArchivo(`❌ Error del servidor: ${tarea.error}`);
+            setIsUploading(false);
+            setServidoresSaturados(false);
+            setEnCola(false);
+            enColaRef.current = false;
+          }
+          // Si status === 'processing', no hacemos nada: seguimos en el Dashboard
+          // con la barra de progreso moviéndose. El intervalo volverá a preguntar.
+        } catch {
+          // Si falla la consulta de estado (ej. red caída momentáneamente),
+          // no rompemos el bucle. El intervalo reintentará en 5 segundos.
+        }
+      }, 5000);
 
     } catch (error) {
+      // Este catch solo cubre el fallo de la subida inicial del archivo
       clearInterval(progressInterval);
+      clearInterval(colaPollingInterval);
       setUploadProgress(0);
-      setErrorArchivo(`❌ Error: ${error.message}`);
+      setErrorArchivo(`❌ Error al subir el archivo: ${error.message}`);
       setIsUploading(false);
-    } finally {
-      // Limpiamos siempre el polling y los estados al terminar (tanto por éxito como por error)
-      clearInterval(pollingInterval);
       setServidoresSaturados(false);
       setEnCola(false);
       enColaRef.current = false;
