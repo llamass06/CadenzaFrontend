@@ -137,7 +137,7 @@ export default function Dashboard() {
             if (taskPollingInterval) clearInterval(taskPollingInterval);
             clearInterval(progressInterval);
             setUploadProgress(0);
-            setErrorArchivo(`❌ Error del servidor: ${tarea.error}`);
+            setErrorArchivo(`Error del servidor: ${tarea.error}`);
             setIsUploading(false);
             setServidoresSaturados(false);
             setEnCola(false);
@@ -164,7 +164,7 @@ export default function Dashboard() {
     } catch (error) {
       clearInterval(progressInterval);
       setUploadProgress(0);
-      setErrorArchivo(`❌ Error al subir el archivo: ${error.message}`);
+      setErrorArchivo(`Error al subir el archivo: ${error.message}`);
       setIsUploading(false);
       setServidoresSaturados(false);
       setEnCola(false);
