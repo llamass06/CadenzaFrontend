@@ -6,17 +6,17 @@ Este repositorio contiene la interfaz de usuario (Frontend) para Cadenza, una ap
 Actualmente, el frontend es plenamente funcional y está desplegado en producción. Se comunica de forma segura con el backend para procesar el audio, gestionar la biblioteca del usuario y renderizar el entorno del Estudio Virtual.
 ## 🌟 Características Implementadas
 
-Dashboard Interactivo: Panel de control principal con sistema de subida de archivos Drag & Drop, extracción automática de metadatos de audio (etiquetas ID3 mediante jsmediatags) y validación de formatos (WAV, FLAC, MP3).
+**Dashboard Interactivo:** Panel de control principal con sistema de subida de archivos Drag & Drop, extracción automática de metadatos de audio (etiquetas ID3 mediante jsmediatags) y validación de formatos (WAV, FLAC, MP3).
 
-Gestión de Biblioteca Cloud: Panel lateral y central para administrar las obras procesadas, incluyendo un sistema de control de cuotas en tiempo real (semáforo visual para el límite de 3 obras del plan gratuito).
+**Gestión de Biblioteca Cloud:** Panel lateral y central para administrar las obras procesadas, incluyendo un sistema de control de cuotas en tiempo real (semáforo visual para el límite de 3 obras del plan gratuito).
 
-Estudio Virtual (Virtual Studio): Reproductor de audio avanzado que permite al pianista escuchar la pista orquestal (sin piano), con visualización del BPM, control de metrónomo sincronizado y lectura del contexto histórico/técnico generado por IA (Google Gemini).
+**Estudio Virtual (Virtual Studio):** Reproductor de audio avanzado que permite al pianista escuchar la pista orquestal (sin piano), con visualización del BPM, control de metrónomo sincronizado y lectura del contexto histórico/técnico generado por IA (Google Gemini).
 
-Progressive Web App (PWA): Soporte para instalación nativa de la aplicación en dispositivos móviles y de escritorio.
+**Progressive Web App (PWA):** Soporte para instalación nativa de la aplicación en dispositivos móviles y de escritorio.
 
-Autenticación y Seguridad: Conexión directa con la API RESTful. Gestión segura de sesión almacenando el token JWT en localStorage y protección estricta mediante Guards (ProtectedRoute) para evitar accesos no autorizados.
+**Autenticación y Seguridad:** Conexión directa con la API RESTful. Gestión segura de sesión almacenando el token JWT en localStorage y protección estricta mediante Guards (ProtectedRoute) para evitar accesos no autorizados.
 
-Deduplicación de Peticiones: Arquitectura de red optimizada que intercepta promesas en vuelo para evitar llamadas duplicadas a la API y reducir la carga en el servidor.
+**Deduplicación de Peticiones:** Arquitectura de red optimizada que intercepta promesas en vuelo para evitar llamadas duplicadas a la API y reducir la carga en el servidor.
 
 ## 🛠️ Stack Tecnológico
 
