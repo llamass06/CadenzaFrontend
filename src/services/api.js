@@ -6,7 +6,7 @@
  */
 
 /** URL base del backend. */
-export const API_URL = "https://disparity-risotto-regretful.ngrok-free.dev";
+export const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 /**
  * getHeaders
@@ -16,7 +16,6 @@ const getHeaders = () => {
     const token = localStorage.getItem('cadenza_token');
     return {
         "Authorization": `Bearer ${token}`,
-        "ngrok-skip-browser-warning": "69420"
     };
 };
 
@@ -25,7 +24,6 @@ const getHeaders = () => {
  * Endpoint: GET /api/v1/mis-obras
  */
 export const fetchMisObras = async () => {
-    console.log("YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAI");
     const response = await fetch(`${API_URL}/api/v1/mis-obras`, {
         headers: getHeaders(),
     });
