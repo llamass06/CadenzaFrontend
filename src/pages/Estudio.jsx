@@ -37,28 +37,41 @@ export default function Estudio() {
     // ─── DESCARGA DEL BACKING TRACK → Blob URL local ────────────────────
     const [backingBlobUrl, setBackingBlobUrl] = useState(null);
     const [isLoadingAudio, setIsLoadingAudio] = useState(!!rawBackingUrl);
+    const [prevBackingUrl, setPrevBackingUrl] = useState(rawBackingUrl);
+
+    if (rawBackingUrl !== prevBackingUrl) {
+        setPrevBackingUrl(rawBackingUrl);
+        setIsLoadingAudio(!!rawBackingUrl);
+    }
 
     useEffect(() => {
         if (!rawBackingUrl) return;
         let objectUrl = null;
-        setIsLoadingAudio(true);
+        let isCancelled = false;
 
-        fetch(rawBackingUrl, { headers: { 'ngrok-skip-browser-warning': '69420' } })
+        const headers = rawBackingUrl.includes('ngrok') ? { 'ngrok-skip-browser-warning': '69420' } : {};
+
+        fetch(rawBackingUrl, { headers })
             .then(res => {
                 if (!res.ok) throw new Error('Error en descarga');
                 return res.blob();
             })
             .then(blob => {
+                if (isCancelled) return;
                 objectUrl = URL.createObjectURL(blob);
                 setBackingBlobUrl(objectUrl);
                 setIsLoadingAudio(false);
             })
             .catch(err => {
+                if (isCancelled) return;
                 console.error('Error al descargar la pista de acompañamiento:', err);
                 setIsLoadingAudio(false);
             });
 
-        return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
+        return () => {
+            isCancelled = true;
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
     }, [rawBackingUrl]);
 
     // ─── HOOKS ESPECIALIZADOS ────────────────────────────────────────────

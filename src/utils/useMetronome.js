@@ -100,9 +100,9 @@ export function useMetronome(initialBpm = 120) {
      *                      de 1000Hz a 100Hz en 50ms, con gain que se desvanece en paralelo.
      *
      * @param {number} time - Tiempo exacto (segundos) en AudioContext en que debe sonar el click.
-     * @param {number} beat - Número de beat actual (reservado para futura acentuación en el tiempo 1).
+     * @param {number} _beat - Número de beat actual (reservado para futura acentuación en el tiempo 1).
      */
-    function playClick(time, beat) {
+    function playClick(time, _beat) {
         if (!audioCtxRef.current) return;
 
         // Plan A: Archivo de audio real (tick.mp3)

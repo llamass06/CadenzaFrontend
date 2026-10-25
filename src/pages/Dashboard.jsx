@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as jsmediatags from 'jsmediatags';
 import AppLayout from '../components/AppLayout';
-import { fetchMisObras, separarPistas, eliminarObraApi, fetchEstadoCola, fetchEstadoTarea } from '../services/api';
+import { fetchMisObras, separarPistas, eliminarObraApi, fetchEstadoTarea } from '../services/api';
 import StorageStatus from '../components/dashboard/StorageStatus';
 import LibraryPanel from '../components/dashboard/LibraryPanel';
 
@@ -50,7 +50,7 @@ export default function Dashboard() {
     };
 
     loadObras();
-  }, []);
+  }, [navigate]);
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
