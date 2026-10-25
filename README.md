@@ -61,4 +61,6 @@ Bash
 5. Abrir en el navegador:
 Navega a http://localhost:5173 para ver la aplicación en funcionamiento.
 
+[![Demostración de Cadenza]](https://drive.google.com/drive/folders/1KzELvuOx6AlsOso066jmqcRjNoFt_uII?usp=sharing)
+
 Desarrollado por Álvaro Llamas Martín.
